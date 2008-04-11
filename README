@@ -1,0 +1,26 @@
+NAME
+
+PerlIO::Util - A selection of general-utility PerlIO layers
+
+INSTALLATION
+
+	To install this module, run the following commands:
+
+		perl Makefile.PL
+		make
+		make test
+		make install
+
+
+DEPENDENCIES
+
+	perl 5.8.0 or later.
+
+
+COPYRIGHT AND LICENCE
+
+	Copyright (C) 2008, Goro Fuji <gfuji (at) cpan.org>, Some rights
+	reversed.
+
+	This library is free software; you can redistribute it and/or modify
+	it under the same terms as Perl itself.

@@ -1,0 +1,17 @@
+Changes
+lib/PerlIO/Util.pm
+Makefile.PL
+MANIFEST			This list of files
+perlioflock.h
+README
+t/00_load.t
+t/01_util.t
+t/02_flock.t
+t/03_creat.t
+t/04_excl.t
+t/99_pod.t
+t/util/.lock
+t/util/locktest.pl
+typemap
+Util.xs
+META.yml                                 Module meta-data (added by MakeMaker)

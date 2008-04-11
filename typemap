@@ -1,0 +1,17 @@
+############################################
+TYPEMAP
+
+PerlIO_funcs* T_PERLIO_LAYER
+
+############################################
+INPUT
+
+T_PERLIO_LAYER
+	if(is_perlio_layer(aTHX_ $arg)){
+		IV iv = SvIVX( SvRV($arg) );
+		$var = INT2PTR(PerlIO_funcs*, iv);
+	}
+	else{
+		croak(\"Invalid PerlIO::Layer\");
+	}
+
