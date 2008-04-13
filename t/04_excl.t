@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -40,11 +40,18 @@ close *IN;
 
 open IN, $file;
 
+ok !eval{
+	no warnings 'layer';
+	binmode *IN, ":excl";
+} && !$@, "Useless use of :excl";
+
+
 eval{
+	use warnings FATAL => 'layer';
 	binmode *IN, ":excl";
 };
 
-like $@, qr/Useless/, "Useless use of :excl";
+like $@, qr/Too late/, "Useless use of :excl";
 
 close *IN;
 

@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -12,18 +12,17 @@ __END__
 
 =head1 NAME
 
-PerlIO::Util - A selection of general-utility PerlIO layers
+PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.01
-
+This document describes PerlIO::Util version 0.02
 
 =head1 SYNOPSIS
 
     use PerlIO::Util;
 
-    # dummy layers
+    # utility layers
 
     open IN, "< :flock", ...; # with flock(IN, LOCK_SH)
     open IN, "+<:flock", ...; # with flock(IN, LOCK_EX)
@@ -35,25 +34,17 @@ This document describes PerlIO::Util version 0.01
 
     my @layers = PerlIO::Util->known_layers();
 
-    # extended PerlIO::Layer methods
-
-    say PerlIO::Layer->find('crlf')->name; # says "crlf"
-
 =head1 DESCRIPTION
 
-C<PerlIO::Util> provides utilities for C<open()> and PerlIO layers.
-
-These utilities is devided into three categories: PerlIO layers, utility
-methods and extended PerlIO::Layer methods.
+C<PerlIO::Util> provides general PerlIO utilities.
 
 =head1 PERLIO LAYERS
 
 =head2 :flock
 
-The C<:flock> is a dummy layer that doesn't exist on the layer stack,
-which provides an interface to C<flock()>.
+The C<:flock> is a dummy layer that provides an interface to C<flock()>.
 
-After C<open()>, it locks the filehandle in C<open()> (or C<binmode()>) by
+It tries to lock the filehandle in C<open()> (or C<binmode()>) with
 C<flock()> according to the open mode. That is, if a file is opened for writing,
 C<:flock> attempts exclusive lock (using LOCK_EX). Otherwise, it attempts
 shared lock (using LOCK_SH).
@@ -86,14 +77,7 @@ see L<perlfunc/sysopen>.
 
 =head2 PerlIO::Util-E<gt>known_layers()
 
-Retuns known layers as string list.
-
-=head1 EXTENDED PerlIO::Layer METHODS
-
-=head2 $layer-E<gt>name()
-
-Retuns the name of I<$layer> that will be obtained by
-C<< PerlIO::Layer->find($name) >>.
+Retuns known layer names.
 
 =head1 DEPENDENCIES
 

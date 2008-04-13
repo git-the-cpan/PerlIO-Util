@@ -6,40 +6,82 @@
 	PerlIO::excl  - open with O_EXCL
 
 */
-#define NDEBUG 1
 
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+
 #include "perliol.h"
 
 #include "perlioflock.h"
 
-#ifdef NDEBUG
 #define LayerFetch(layer, n) ((layer)->array[n].funcs)
-#else
-#define LayerFetch(layer, n) ( ((n) >= 0 && (n) < (layer)->cur) \
+#define LayerFetchSafe(layer, n) ( ((n) >= 0 && (n) < (layer)->cur) \
 				? (layer)->array[n].funcs : (PerlIO_funcs*)0 )
+
+#ifndef PERLIO_FUNCS_DECL
+#define PERLIO_FUNCS_DECL(funcs) const PerlIO_funcs funcs
+#define PERLIO_FUNCS_CAST(funcs) (PerlIO_funcs*)(funcs)
 #endif
 
-static bool
-is_perlio_layer(pTHX_ SV* sv)
+#if WIN32 /* ActivePerl */
+/* copied from perlio.c */
+static int
+PerlIOUnix_oflags(const char *mode)
 {
-	SV* o;
-	if(!sv) return FALSE;
+    int oflags = -1;
+    if (*mode == IoTYPE_IMPLICIT || *mode == IoTYPE_NUMERIC)
+	mode++;
+    switch (*mode) {
+    case 'r':
+	oflags = O_RDONLY;
+	if (*++mode == '+') {
+	    oflags = O_RDWR;
+	    mode++;
+	}
+	break;
 
-	SvGETMAGIC(sv);
+    case 'w':
+	oflags = O_CREAT | O_TRUNC;
+	if (*++mode == '+') {
+	    oflags |= O_RDWR;
+	    mode++;
+	}
+	else
+	    oflags |= O_WRONLY;
+	break;
 
-	if(!SvROK(sv)) return FALSE;
-
-	o = SvRV(sv);
-
-	if(!SvOBJECT(o)) return FALSE;
-	if(!SvIOK(o))    return FALSE;
-
-	return sv_derived_from(sv, "PerlIO::Layer");
+    case 'a':
+	oflags = O_CREAT | O_APPEND;
+	if (*++mode == '+') {
+	    oflags |= O_RDWR;
+	    mode++;
+	}
+	else
+	    oflags |= O_WRONLY;
+	break;
+    }
+    if (*mode == 'b') {
+	oflags |= O_BINARY;
+	oflags &= ~O_TEXT;
+	mode++;
+    }
+    else if (*mode == 't') {
+	oflags |= O_TEXT;
+	oflags &= ~O_BINARY;
+	mode++;
+    }
+    /*
+     * Always open in binary mode
+     */
+    oflags |= O_BINARY;
+    if (*mode || oflags == -1) {
+	SETERRNO(EINVAL, LIB_INVARG);
+	oflags = -1;
+    }
+    return oflags;
 }
-
+#endif /* WIN32 */
 
 static IV
 PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
@@ -63,7 +105,7 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 			lock_mode |= LOCK_NB;
 		}
 		else{
-			croak("PerlIO::flock: Unrecognized handler '%s' "
+			Perl_croak(aTHX_ "Unrecognized :flock handler '%s' "
 				"(it must be 'blocking' or 'non-blocking')",
 				on_fail);
 		}
@@ -77,7 +119,11 @@ static IV
 useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 		PerlIO_funcs* tab){
 
-	croak("Useless use of ':%s' layer in binmode()", tab->name);
+	if(ckWARN(WARN_LAYER)){
+		Perl_warner(aTHX_ packWARN(WARN_LAYER),
+			"Too late for :%s layer", tab->name);
+	}
+	SETERRNO(EINVAL, LIB_INVARG);
 	return -1;
 }
 
@@ -88,7 +134,6 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 	PerlIO_funcs* tab = NULL;
 	char numeric_mode[5];
 	int i;
-
 
 	if(mode[0] != IoTYPE_NUMERIC){
 		assert( sizeof(numeric_mode) > strlen(mode) );
@@ -113,12 +158,10 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 			break;
 		}
 	}
-	if(!tab){
-		tab = PerlIO_default_layer(aTHX_ 0);
+	if(!(tab && tab->Open)){
+		Perl_croak(aTHX_ "panic: lower layer not found");
 	}
 
-	assert(tab);
-	assert(tab->Open);
 /*
 	warn("# open(tab=%s, mode=%s, imode=0x%x, perm=0%o)",
 		tab->name, mode, imode, perm);
@@ -254,7 +297,6 @@ BOOT:
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_creat));
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_excl));
 
-
 void
 known_layers(...)
 PREINIT:
@@ -267,14 +309,3 @@ PPCODE:
 		PUSHs( sv_2mortal(name) );
 	}
 	XSRETURN(layers->cur);
-
-
-MODULE = PerlIO::Util		PACKAGE = PerlIO::Layer
-
-const char*
-name(layer)
-	PerlIO_funcs* layer
-CODE:
-	RETVAL = layer->name;
-OUTPUT:
-	RETVAL

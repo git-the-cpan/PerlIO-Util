@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:                PerlIO-Util
-version:             0.01
-abstract:            A selection of general-utility PerlIO layers
+version:             0.02
+abstract:            A selection of general PerlIO utilities
 license:             perl
 author:              
     - Goro Fuji <gfuji (at) cpan.org>
