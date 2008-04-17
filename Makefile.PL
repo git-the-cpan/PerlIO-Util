@@ -12,6 +12,8 @@ WriteMakefile(
     VERSION_FROM        => 'lib/PerlIO/Util.pm',
     ABSTRACT_FROM       => 'lib/PerlIO/Util.pm',
 
+    OBJECT              => '$(O_FILES)',
+
     LICENSE             => 'perl',
 
     clean               => { FILES => 'PerlIO-Util-*' },

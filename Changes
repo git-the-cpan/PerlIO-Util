@@ -1,11 +1,15 @@
 Revision history for PerlIO-Util
 
+0.03 Thu Apr 17 16:02:31 2008
+	add push_layer()/pop_layer() methods to IO::Handle package
+	export PerlIO::get_layers() utility to IO::Handle package
+
 0.02 Sun Apr 13 10:23:59 2008
 	warn on binmode($fh, ':creat') instead of die
 	remove PerlIO::Layer::name() method
 	some minor changes
 	improve portability
 
-0.01  Fri Apr 11 09:32:36 2008
+0.01 Fri Apr 11 09:32:36 2008
 	Initial release.
 

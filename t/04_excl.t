@@ -5,6 +5,12 @@ use Test::More tests => 11;
 
 use FindBin qw($Bin);
 use File::Spec;
+BEGIN{
+	eval 'use Fcntl;1' or do{
+		*O_RDWR  = sub(){ 0x002 };
+		*O_CREAT = sub(){ 0x200 };
+	};
+}
 
 
 use PerlIO::Util;
@@ -31,7 +37,6 @@ close *IN;
 {
 	local $!;
 	use open IO => ':excl';
-	use Fcntl;
 
 	ok -e $file, "file exists";
 	ok !sysopen(*IN, $file, O_RDWR | O_CREAT), "sysopen with :excl";

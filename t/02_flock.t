@@ -6,6 +6,10 @@ use Test::More tests => 18;
 use FindBin qw($Bin);
 use File::Spec;
 
+BEGIN{
+	eval 'use Fcntl;1' or *O_RDONLY = sub(){ 0 };
+}
+
 use PerlIO::Util;
 
 ok scalar(PerlIO::Layer->find('flock')), "':flock' is available";
@@ -62,8 +66,6 @@ isnt system($^X, "-Mblib", $helper, "+<:flock(non-blocking)", $file), 0,
 
 {
 	use open IO => ':flock';
-
-	use Fcntl;
 
 	ok sysopen(IN, $file, O_RDONLY), "sysopen with :flock";
 	ok system($^X, "-Mblib", $helper, "<:flock", $file),

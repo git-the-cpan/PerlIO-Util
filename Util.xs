@@ -11,18 +11,9 @@
 #include "perl.h"
 #include "XSUB.h"
 
-#include "perliol.h"
-
+#include "perlioutil.h"
 #include "perlioflock.h"
 
-#define LayerFetch(layer, n) ((layer)->array[n].funcs)
-#define LayerFetchSafe(layer, n) ( ((n) >= 0 && (n) < (layer)->cur) \
-				? (layer)->array[n].funcs : (PerlIO_funcs*)0 )
-
-#ifndef PERLIO_FUNCS_DECL
-#define PERLIO_FUNCS_DECL(funcs) const PerlIO_funcs funcs
-#define PERLIO_FUNCS_CAST(funcs) (PerlIO_funcs*)(funcs)
-#endif
 
 #if WIN32 /* ActivePerl */
 /* copied from perlio.c */
@@ -286,8 +277,6 @@ PERLIO_FUNCS_DECL(PerlIO_excl) = {
 };
 
 
-
-
 MODULE = PerlIO::Util		PACKAGE = PerlIO::Util		
 
 PROTOTYPES: DISABLE
@@ -309,3 +298,46 @@ PPCODE:
 		PUSHs( sv_2mortal(name) );
 	}
 	XSRETURN(layers->cur);
+
+MODULE = PerlIO::Util		PACKAGE = IO::Handle
+
+#define undef &PL_sv_undef
+
+void
+push_layer(filehandle, layer, arg = undef)
+	PerlIO* filehandle
+	SV* layer
+	SV* arg
+PREINIT:
+	PerlIO_funcs* tab;
+	const char* laypv;
+	STRLEN laylen;
+CODE:
+	laypv = SvPV(layer, laylen);
+	tab = PerlIO_find_layer(aTHX_ laypv, laylen, TRUE);
+	if(tab){
+		if(!PerlIO_push(aTHX_ filehandle, tab, Nullch, arg)){
+			Perl_croak(aTHX_ "push_layer() failed: %s",
+				PerlIOValid(filehandle)
+					? Strerror(errno)
+					: "Invalid filehandle");
+		}
+	}
+	else{
+		Perl_croak(aTHX_ "Unknown PerlIO layer \"%.*s\"",
+				(int)laylen, laypv);
+	}
+	XSRETURN(1);
+
+void
+pop_layer(filehandle)
+	PerlIO* filehandle
+CODE:
+	if(PerlIOValid(filehandle)){
+		PerlIO_flush(filehandle);
+		PerlIO_pop(aTHX_ filehandle);
+	}
+	else{
+		Perl_croak(aTHX_ "Invalid filehandle");
+	}
+	XSRETURN(1);

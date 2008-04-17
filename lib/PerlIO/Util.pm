@@ -2,10 +2,12 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
+
+*IO::Handle::get_layers = \&PerlIO::get_layers;
 
 1;
 __END__
@@ -16,7 +18,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.02
+This document describes PerlIO::Util version 0.03
 
 =head1 SYNOPSIS
 
@@ -30,19 +32,27 @@ This document describes PerlIO::Util version 0.02
     open IN, "+<:creat", ...; # with O_CREAT
     open IN, "> :excl",  ...; # with O_EXCL
 
-    # utility subroutines
+    # utility routines
 
     my @layers = PerlIO::Util->known_layers();
 
+    STDOUT->push_layer(scalar => \my $s);
+    print "foo";
+
+    STDOUT->pop_layer();
+
+    print $s; # => foo
+
 =head1 DESCRIPTION
 
-C<PerlIO::Util> provides general PerlIO utilities.
+C<PerlIO::Util> provides general PerlIO utilities: utility layers and utility
+methods.
 
-=head1 PERLIO LAYERS
+=head1 UTILITY LAYERS
 
 =head2 :flock
 
-The C<:flock> is a dummy layer that provides an interface to C<flock()>.
+C<:flock> is a dummy layer that provides an interface to C<flock()>.
 
 It tries to lock the filehandle in C<open()> (or C<binmode()>) with
 C<flock()> according to the open mode. That is, if a file is opened for writing,
@@ -59,25 +69,44 @@ For example:
 	open IN, "<:flock(blocking)", $file;     # ditto.
 	open IN, "<:flock(non-blocking)", $file; # tries shared lock, or returns undef.
 
-see L<perlfunc/flock>.
+See L<perlfunc/flock>.
 
 =head2 :creat
 
 The C<:creat> dummy layer appends O_CREAT to the open flags.
 
-see L<perlfunc/sysopen>.
+See L<perlfunc/sysopen>.
 
 =head2 :excl
 
 the C<:excl> dummy layer appends O_EXCL to the open flags.
 
-see L<perlfunc/sysopen>.
+See L<perlfunc/sysopen>.
 
 =head1 UTILITY METHODS
 
 =head2 PerlIO::Util-E<gt>known_layers()
 
-Retuns known layer names.
+Retuns the known layer names.
+
+=head2 I<FILEHANDLE>-E<gt>get_layers()
+
+Returns the names of the PerlIO layers on I<FILEHANDLE>.
+
+See L<PerlIO/Querying the layers of filehandles>.
+
+=head2 I<FILEHANDLE>-E<gt>push_layer(I<layer> [ => I<arg>])
+
+Equivalent to C<binmode(*FILEHANDLE, ':layer(arg)')>, but accepts any type of
+I<arg>, e.g. a scalar reference to the C<scalar> layer.
+
+This method returns itself.
+
+=head2 I<FILEHANDLE>-E<gt>pop_layer()
+
+Equivalent to C<binmode(*FILEHANDLE, ':pop')>.
+
+This method returns itself.
 
 =head1 DEPENDENCIES
 

@@ -5,7 +5,9 @@ use Test::More tests => 22;
 
 use FindBin qw($Bin);
 use File::Spec;
-
+BEGIN{
+	eval 'use Fcntl;1' or *O_RDWR = sub(){ 2 };
+}
 
 use PerlIO::Util;
 use Fatal qw(unlink);
@@ -76,7 +78,7 @@ ok -e $file, "exist";
 
 
 
-my @layers = PerlIO::get_layers(*IN);
+my @layers = IN->get_layers();
 
 ok scalar( grep{ $_ eq 'crlf' } @layers ), "has other layers (in [@layers])";
 
@@ -85,7 +87,6 @@ unlink $file;
 
 {
 	use open IO => ':creat';
-	use Fcntl;
 
 	ok sysopen(*IN, $file, O_RDWR), "sysopen with :creat";
 
