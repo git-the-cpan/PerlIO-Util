@@ -1,6 +1,13 @@
 NAME
 
-PerlIO::Util - A selection of general-utility PerlIO layers
+PerlIO::Util - A selection of general PerlIO utilities
+
+SYNOPSIS
+
+	use PerlIO::Util;
+
+	# creates $file if needed, and calls flock(IN, LOCK_SH)
+	open IN, '<:creat :flock', $file; 
 
 INSTALLATION
 

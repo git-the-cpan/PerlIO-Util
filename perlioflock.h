@@ -1,4 +1,4 @@
-/* from pp_sys.c */
+/* copied from pp_sys.c */
 
 #ifndef FLOCK
 

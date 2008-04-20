@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -18,7 +18,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.03
+This document describes PerlIO::Util version 0.04
 
 =head1 SYNOPSIS
 
@@ -33,8 +33,6 @@ This document describes PerlIO::Util version 0.03
     open IN, "> :excl",  ...; # with O_EXCL
 
     # utility routines
-
-    my @layers = PerlIO::Util->known_layers();
 
     STDOUT->push_layer(scalar => \my $s);
     print "foo";

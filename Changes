@@ -1,5 +1,9 @@
 Revision history for PerlIO-Util
 
+0.04 Fri Apr 18 20:07:55 2008
+	add t/05_extra.t
+	check compilation on Win32
+
 0.03 Thu Apr 17 16:02:31 2008
 	add push_layer()/pop_layer() methods to IO::Handle package
 	export PerlIO::get_layers() utility to IO::Handle package

@@ -1,3 +1,4 @@
+.cvsignore
 Changes
 lib/PerlIO/Util.pm
 Makefile.PL
@@ -10,6 +11,7 @@ t/01_util.t
 t/02_flock.t
 t/03_creat.t
 t/04_excl.t
+t/05_extra.t
 t/99_pod.t
 t/util/.lock
 t/util/locktest.pl

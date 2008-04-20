@@ -16,7 +16,52 @@
 
 
 #if WIN32 /* ActivePerl */
-/* copied from perlio.c */
+/* missing functions copied from perlio.c */
+
+static PerlIO_funcs *
+PerlIO_find_layer(pTHX_ const char *name, STRLEN len, int load)
+{
+    dVAR;
+    IV i;
+    if ((SSize_t) len <= 0)
+	len = strlen(name);
+    for (i = 0; i < PL_known_layers->cur; i++) {
+	PerlIO_funcs * const f = PL_known_layers->array[i].funcs;
+	if (memEQ(f->name, name, len) && f->name[len] == 0) {
+	    PerlIO_debug("%.*s => %p\n", (int) len, name, (void*)f);
+	    return f;
+	}
+    }
+    if (load && PL_subname && PL_def_layerlist
+	&& PL_def_layerlist->cur >= 2) {
+	if (PL_in_load_module) {
+	    Perl_croak(aTHX_ "Recursive call to Perl_load_module in PerlIO_find_layer");
+	    return NULL;
+	} else {
+	    SV * const pkgsv = newSVpvs("PerlIO");
+	    SV * const layer = newSVpvn(name, len);
+	    CV * const cv    = Perl_get_cvn_flags(aTHX_ STR_WITH_LEN("PerlIO::Layer::NoWarnings"), 0);
+	    ENTER;
+	    SAVEINT(PL_in_load_module);
+	    if (cv) {
+		SAVEGENERICSV(PL_warnhook);
+		PL_warnhook = (SV *) (SvREFCNT_inc_simple_NN(cv));
+	    }
+	    PL_in_load_module++;
+	    /*
+	     * The two SVs are magically freed by load_module
+	     */
+	    Perl_load_module(aTHX_ 0, pkgsv, NULL, layer, NULL);
+	    PL_in_load_module--;
+	    LEAVE;
+	    return PerlIO_find_layer(aTHX_ name, len, 0);
+	}
+    }
+    PerlIO_debug("Cannot find %.*s\n", (int) len, name);
+    return NULL;
+}
+
+
 static int
 PerlIOUnix_oflags(const char *mode)
 {
@@ -80,9 +125,7 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 
 	IV lock_mode;
 
-	if(!PerlIOValid(fp)){
-		return -1;
-	}
+	assert(PerlIOValid(fp));
 
 	lock_mode = (*fp)->flags & PERLIO_F_CANWRITE ? LOCK_EX : LOCK_SH;
 
@@ -152,12 +195,12 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 	if(!(tab && tab->Open)){
 		Perl_croak(aTHX_ "panic: lower layer not found");
 	}
-
 /*
 	warn("# open(tab=%s, mode=%s, imode=0x%x, perm=0%o)",
 		tab->name, mode, imode, perm);
-*/
-	return (*tab->Open)(aTHX_ tab, layers, i+1,  mode,
+//*/
+
+	return (*tab->Open)(aTHX_ tab, layers, i,  mode,
 				fd, imode, perm, f, narg, args);
 }
 

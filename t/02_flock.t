@@ -1,13 +1,14 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 18;
+use Test::More tests => 19;
 
 use FindBin qw($Bin);
 use File::Spec;
 
 BEGIN{
-	eval 'use Fcntl;1' or *O_RDONLY = sub(){ 0 };
+	eval 'use Fcntl;1'
+		or *O_RDONLY = sub(){ 0 }; # maybe
 }
 
 use PerlIO::Util;
@@ -43,8 +44,10 @@ ok close(IN), "close";
 
 {
 	no warnings 'io';
-	use vars '*FAKE';
-	ok !defined(binmode *FAKE, ':flock'), ":flock to unopened filehandle";
+	select select my $unopened;
+	
+	ok !defined(binmode $unopened, ':flock'), ":flock to unopened filehandle (binmode)";
+	ok !eval{ $unopened->push_layer('flock');1 }, ":flock to unopened filehandle (push_layer)";
 }
 ok open(IN, "<:flock", $file), "open(readonly) in this process";
 ok system($^X, "-Mblib", $helper, "<:flock", $file),
