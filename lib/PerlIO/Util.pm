@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -18,7 +18,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.04
+This document describes PerlIO::Util version 0.05
 
 =head1 SYNOPSIS
 
@@ -46,11 +46,14 @@ This document describes PerlIO::Util version 0.04
 C<PerlIO::Util> provides general PerlIO utilities: utility layers and utility
 methods.
 
+C<:flock>, C<:creat> and C<:excl> are pseudo layers that don't exist on the layer
+stack.
+
 =head1 UTILITY LAYERS
 
 =head2 :flock
 
-C<:flock> is a dummy layer that provides an interface to C<flock()>.
+The C<:flock> layer provides an interface to C<flock()>.
 
 It tries to lock the filehandle in C<open()> (or C<binmode()>) with
 C<flock()> according to the open mode. That is, if a file is opened for writing,
@@ -71,13 +74,13 @@ See L<perlfunc/flock>.
 
 =head2 :creat
 
-The C<:creat> dummy layer appends O_CREAT to the open flags.
+The C<:creat> layer appends O_CREAT to the open flags.
 
 See L<perlfunc/sysopen>.
 
 =head2 :excl
 
-the C<:excl> dummy layer appends O_EXCL to the open flags.
+the C<:excl> layer appends O_EXCL to the open flags.
 
 See L<perlfunc/sysopen>.
 
@@ -98,13 +101,13 @@ See L<PerlIO/Querying the layers of filehandles>.
 Equivalent to C<binmode(*FILEHANDLE, ':layer(arg)')>, but accepts any type of
 I<arg>, e.g. a scalar reference to the C<scalar> layer.
 
-This method returns itself.
+This method returns I<\*FILEHANDLE>.
 
 =head2 I<FILEHANDLE>-E<gt>pop_layer()
 
 Equivalent to C<binmode(*FILEHANDLE, ':pop')>.
 
-This method returns itself.
+This method returns I<\*FILEHANDLE>.
 
 =head1 DEPENDENCIES
 
@@ -120,11 +123,13 @@ L<http://rt.cpan.org/>.
 
 =head1 SEE ALSO
 
-L<perlfunc/flock>.
+L<perlfunc/flock> for C<:flock>.
 
-L<perlfunc/sysopen>.
+L<perlfunc/sysopen> for C<:creat> and C<:excl>.
 
-L<PerlIO>.
+L<PerlIO> for C<push_layer()> and C<pop_layer()>.
+
+L<perliol> for implementation details.
 
 =head1 AUTHOR
 

@@ -21,7 +21,9 @@
 static PerlIO_funcs *
 PerlIO_find_layer(pTHX_ const char *name, STRLEN len, int load)
 {
+#ifdef dVAR
     dVAR;
+#endif
     IV i;
     if ((SSize_t) len <= 0)
 	len = strlen(name);
