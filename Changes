@@ -1,5 +1,10 @@
 Revision history for PerlIO-Util
 
+0.06 Sat Apr 26 21:17:57 2008
+	- change pop_layer() to return the name of the poped layer
+	- change push_layer() to allow a semicolon as a prefix (like ':utf8')
+	- use ppport.h for compatibility
+
 0.05 Thu Apr 24 00:26:47 2008
 	- improve portability on Win32 (about dVAR macro)
 

@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -18,7 +18,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.05
+This document describes PerlIO::Util version 0.06
 
 =head1 SYNOPSIS
 
@@ -60,15 +60,18 @@ C<flock()> according to the open mode. That is, if a file is opened for writing,
 C<:flock> attempts exclusive lock (using LOCK_EX). Otherwise, it attempts
 shared lock (using LOCK_SH).
 
-It waits until the lock is granted. If an arg like "non-blocking"
-is suplied, the call of C<open()> fails when the lock cannot be granted.
+It waits until the lock is granted. If an argument C<non-blocking> (or
+C<LOCK_NB>) is suplied, the call of C<open()> fails when the lock cannot be
+granted.
 
 For example:
 
 	open IN, "<:flock", $file;               # tries shared lock, or waits
 	                                         # until the lock is granted.
 	open IN, "<:flock(blocking)", $file;     # ditto.
+
 	open IN, "<:flock(non-blocking)", $file; # tries shared lock, or returns undef.
+	open IN, "<:flock(LOCK_NB)", $file;      # ditto.
 
 See L<perlfunc/flock>.
 
@@ -107,7 +110,7 @@ This method returns I<\*FILEHANDLE>.
 
 Equivalent to C<binmode(*FILEHANDLE, ':pop')>.
 
-This method returns I<\*FILEHANDLE>.
+This method returns the name of the poped layer.
 
 =head1 DEPENDENCIES
 

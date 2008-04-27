@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 use IO::Handle;
 
@@ -39,10 +39,14 @@ is_deeply [DATA->get_layers()], \@layers, 'pop_layer()';
 is scalar(<DATA>), "foo\n", '... popped correctly';
 
 
+DATA->push_layer(':utf8');
+is_deeply [DATA->get_layers()], [@layers, 'utf8'], 'allows ":foo" style';
+DATA->pop_layer();
+
 is *DATA->push_layer('crlf')->fileno(), fileno(*DATA),
 	'push_layer() returns self';
 
-is *DATA->pop_layer()->fileno, fileno(*DATA), 'pop_layer() returns self';
+is *DATA->pop_layer(), 'crlf', 'pop_layer() returns the name of the poped layer';
 
 eval{
 	local $INC{'PerlIO/foo.pm'} = __FILE__;

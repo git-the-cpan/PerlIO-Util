@@ -14,113 +14,6 @@
 #include "perlioutil.h"
 #include "perlioflock.h"
 
-
-#if WIN32 /* ActivePerl */
-/* missing functions copied from perlio.c */
-
-static PerlIO_funcs *
-PerlIO_find_layer(pTHX_ const char *name, STRLEN len, int load)
-{
-#ifdef dVAR
-    dVAR;
-#endif
-    IV i;
-    if ((SSize_t) len <= 0)
-	len = strlen(name);
-    for (i = 0; i < PL_known_layers->cur; i++) {
-	PerlIO_funcs * const f = PL_known_layers->array[i].funcs;
-	if (memEQ(f->name, name, len) && f->name[len] == 0) {
-	    PerlIO_debug("%.*s => %p\n", (int) len, name, (void*)f);
-	    return f;
-	}
-    }
-    if (load && PL_subname && PL_def_layerlist
-	&& PL_def_layerlist->cur >= 2) {
-	if (PL_in_load_module) {
-	    Perl_croak(aTHX_ "Recursive call to Perl_load_module in PerlIO_find_layer");
-	    return NULL;
-	} else {
-	    SV * const pkgsv = newSVpvs("PerlIO");
-	    SV * const layer = newSVpvn(name, len);
-	    CV * const cv    = Perl_get_cvn_flags(aTHX_ STR_WITH_LEN("PerlIO::Layer::NoWarnings"), 0);
-	    ENTER;
-	    SAVEINT(PL_in_load_module);
-	    if (cv) {
-		SAVEGENERICSV(PL_warnhook);
-		PL_warnhook = (SV *) (SvREFCNT_inc_simple_NN(cv));
-	    }
-	    PL_in_load_module++;
-	    /*
-	     * The two SVs are magically freed by load_module
-	     */
-	    Perl_load_module(aTHX_ 0, pkgsv, NULL, layer, NULL);
-	    PL_in_load_module--;
-	    LEAVE;
-	    return PerlIO_find_layer(aTHX_ name, len, 0);
-	}
-    }
-    PerlIO_debug("Cannot find %.*s\n", (int) len, name);
-    return NULL;
-}
-
-
-static int
-PerlIOUnix_oflags(const char *mode)
-{
-    int oflags = -1;
-    if (*mode == IoTYPE_IMPLICIT || *mode == IoTYPE_NUMERIC)
-	mode++;
-    switch (*mode) {
-    case 'r':
-	oflags = O_RDONLY;
-	if (*++mode == '+') {
-	    oflags = O_RDWR;
-	    mode++;
-	}
-	break;
-
-    case 'w':
-	oflags = O_CREAT | O_TRUNC;
-	if (*++mode == '+') {
-	    oflags |= O_RDWR;
-	    mode++;
-	}
-	else
-	    oflags |= O_WRONLY;
-	break;
-
-    case 'a':
-	oflags = O_CREAT | O_APPEND;
-	if (*++mode == '+') {
-	    oflags |= O_RDWR;
-	    mode++;
-	}
-	else
-	    oflags |= O_WRONLY;
-	break;
-    }
-    if (*mode == 'b') {
-	oflags |= O_BINARY;
-	oflags &= ~O_TEXT;
-	mode++;
-    }
-    else if (*mode == 't') {
-	oflags |= O_TEXT;
-	oflags &= ~O_BINARY;
-	mode++;
-    }
-    /*
-     * Always open in binary mode
-     */
-    oflags |= O_BINARY;
-    if (*mode || oflags == -1) {
-	SETERRNO(EINVAL, LIB_INVARG);
-	oflags = -1;
-    }
-    return oflags;
-}
-#endif /* WIN32 */
-
 static IV
 PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 		PerlIO_funcs* tab){
@@ -134,10 +27,11 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 	if(SvOK(arg)){
 		const char* on_fail = SvPV_nolen(arg);
 
-		if(strcmp(on_fail, "blocking") == 0){
+		if(strEQ(on_fail, "blocking")){
 			/* noop */
 		}
-		else if(strcmp(on_fail, "non-blocking") == 0){
+		else if(strEQ(on_fail, "non-blocking")
+			|| strEQ(on_fail, "LOCK_NB")){
 			lock_mode |= LOCK_NB;
 		}
 		else{
@@ -346,7 +240,7 @@ PPCODE:
 
 MODULE = PerlIO::Util		PACKAGE = IO::Handle
 
-#define undef &PL_sv_undef
+#define undef Nullsv
 
 void
 push_layer(filehandle, layer, arg = undef)
@@ -357,8 +251,12 @@ PREINIT:
 	PerlIO_funcs* tab;
 	const char* laypv;
 	STRLEN laylen;
-CODE:
+PPCODE:
 	laypv = SvPV(layer, laylen);
+	if(laypv[0] == ':'){ /* ignore this layer prefix */
+		laypv++;
+		laylen--;
+	}
 	tab = PerlIO_find_layer(aTHX_ laypv, laylen, TRUE);
 	if(tab){
 		if(!PerlIO_push(aTHX_ filehandle, tab, Nullch, arg)){
@@ -377,12 +275,19 @@ CODE:
 void
 pop_layer(filehandle)
 	PerlIO* filehandle
-CODE:
+PREINIT:
+	const char* poped_layer = Nullch;
+PPCODE:
 	if(PerlIOValid(filehandle)){
+		poped_layer = (*filehandle)->tab->name;
+
 		PerlIO_flush(filehandle);
 		PerlIO_pop(aTHX_ filehandle);
 	}
 	else{
 		Perl_croak(aTHX_ "Invalid filehandle");
 	}
-	XSRETURN(1);
+	if(GIMME_V != G_VOID){
+		XSRETURN_PV(poped_layer);
+	}
+
