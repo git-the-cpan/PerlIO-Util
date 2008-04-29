@@ -51,7 +51,7 @@ useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 
 	if(ckWARN(WARN_LAYER)){
 		Perl_warner(aTHX_ packWARN(WARN_LAYER),
-			"Too late for :%s layer", tab->name);
+			"Too late for %s layer", tab->name);
 	}
 	SETERRNO(EINVAL, LIB_INVARG);
 	return -1;
@@ -80,7 +80,6 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 		perm = 0666;
 	}
 
-
 	for(i = n-1; i >= 0; i--){
 		tab = LayerFetch(layers, i);
 
@@ -88,9 +87,7 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 			break;
 		}
 	}
-	if(!(tab && tab->Open)){
-		Perl_croak(aTHX_ "panic: lower layer not found");
-	}
+	assert(tab && tab->Open);
 /*
 	warn("# open(tab=%s, mode=%s, imode=0x%x, perm=0%o)",
 		tab->name, mode, imode, perm);

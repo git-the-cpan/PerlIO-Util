@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -18,7 +18,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.06
+This document describes PerlIO::Util version 0.07
 
 =head1 SYNOPSIS
 
@@ -37,7 +37,7 @@ This document describes PerlIO::Util version 0.06
     STDOUT->push_layer(scalar => \my $s);
     print "foo";
 
-    STDOUT->pop_layer();
+    print STDOUT->pop_layer(); # => scalar
 
     print $s; # => foo
 
@@ -77,13 +77,24 @@ See L<perlfunc/flock>.
 
 =head2 :creat
 
-The C<:creat> layer appends O_CREAT to the open flags.
-
-See L<perlfunc/sysopen>.
-
 =head2 :excl
 
-the C<:excl> layer appends O_EXCL to the open flags.
+They append O_CREAT or O_EXCL to the open flags.
+
+With C<:creat> and C<:excl>, you can emulate a part of C<sysopen()> without
+C<Fcntl>.
+
+Here are things you can do with them:
+
+To open a file for update, creating a new file which must
+not previously exist:
+
+	my $fh = PerlIO::Util->open('+< :excl :creat', $file);
+
+To open a file for update, creating a new file if necessary:
+
+	my $fh = PerlIO::Util->open('+< :creat', $file);
+
 
 See L<perlfunc/sysopen>.
 
@@ -104,7 +115,7 @@ See L<PerlIO/Querying the layers of filehandles>.
 Equivalent to C<binmode(*FILEHANDLE, ':layer(arg)')>, but accepts any type of
 I<arg>, e.g. a scalar reference to the C<scalar> layer.
 
-This method returns I<\*FILEHANDLE>.
+This method dies on fail. Otherwise, it returns I<FILEHANDLE>.
 
 =head2 I<FILEHANDLE>-E<gt>pop_layer()
 

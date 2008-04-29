@@ -1,5 +1,8 @@
 Revision history for PerlIO-Util
 
+0.07 Tue Apr 29 10:53:52 2008
+	- use get_cv() instead of get_cvn_flags() for Win32 (thanks to Taro Nishino)
+
 0.06 Sat Apr 26 21:17:57 2008
 	- change pop_layer() to return the name of the poped layer
 	- change push_layer() to allow a semicolon as a prefix (like ':utf8')

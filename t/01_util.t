@@ -4,6 +4,7 @@ use warnings;
 use Test::More tests => 14;
 
 use IO::Handle;
+use File::Spec;
 
 BEGIN{
 	use_ok('PerlIO::Util');
@@ -43,10 +44,12 @@ DATA->push_layer(':utf8');
 is_deeply [DATA->get_layers()], [@layers, 'utf8'], 'allows ":foo" style';
 DATA->pop_layer();
 
-is *DATA->push_layer('crlf')->fileno(), fileno(*DATA),
+is *DATA->push_layer('crlf'), \*DATA,
 	'push_layer() returns self';
 
 is *DATA->pop_layer(), 'crlf', 'pop_layer() returns the name of the poped layer';
+
+# checks on errors
 
 eval{
 	local $INC{'PerlIO/foo.pm'} = __FILE__;
@@ -67,7 +70,6 @@ eval{
 };
 
 like $@, qr/Invalid filehandle/, 'pop_layer(): Invalid filehandle';
-
 
 __DATA__
 foo
