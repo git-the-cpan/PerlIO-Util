@@ -18,31 +18,44 @@ static IV
 PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 		PerlIO_funcs* tab){
 
-	IV lock_mode;
+	int lock_mode;
+	int fd;
+	int ret;
 
 	assert(PerlIOValid(fp));
 
 	lock_mode = (*fp)->flags & PERLIO_F_CANWRITE ? LOCK_EX : LOCK_SH;
 
 	if(SvOK(arg)){
-		const char* on_fail = SvPV_nolen(arg);
+		const char* blocking = SvPV_nolen(arg);
 
-		if(strEQ(on_fail, "blocking")){
+		if(strEQ(blocking, "blocking")){
 			/* noop */
 		}
-		else if(strEQ(on_fail, "non-blocking")
-			|| strEQ(on_fail, "LOCK_NB")){
+		else if(strEQ(blocking, "non-blocking")
+			|| strEQ(blocking, "LOCK_NB")){
 			lock_mode |= LOCK_NB;
 		}
 		else{
 			Perl_croak(aTHX_ "Unrecognized :flock handler '%s' "
 				"(it must be 'blocking' or 'non-blocking')",
-				on_fail);
+					blocking);
 		}
 	}
 
 	PerlIO_flush(fp);
-	return PerlLIO_flock(PerlIO_fileno(fp), lock_mode);
+	fd  = PerlIO_fileno(fp);
+	ret = PerlLIO_flock(fd, lock_mode);
+
+	PerlIO_debug(STRINGIFY(FLOCK) "(%d, %s) -> %d\n", fd,
+		(  lock_mode == (LOCK_SH)         ? "LOCK_SH"
+		 : lock_mode == (LOCK_SH|LOCK_NB) ? "LOCK_SH|LOCK_NB"
+		 : lock_mode == (LOCK_EX)         ? "LOCK_EX"
+		 : lock_mode == (LOCK_EX|LOCK_NB) ? "LOCK_EX|LOCK_NB"
+		 : "(UNKNOWN)" ),
+		ret);
+
+	return ret;
 }
 
 static IV
@@ -64,6 +77,10 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 	PerlIO_funcs* tab = NULL;
 	char numeric_mode[5];
 	int i;
+
+	if(PerlIOValid(f)){ /* PerlIO_reopen() */
+		/* not yet implemented */
+	}
 
 	if(mode[0] != IoTYPE_NUMERIC){
 		assert( sizeof(numeric_mode) > strlen(mode) );
@@ -212,6 +229,7 @@ PERLIO_FUNCS_DECL(PerlIO_excl) = {
 	NULL  /* set_ptrcnt */
 };
 
+extern PERLIO_FUNCS_DECL(PerlIO_tee);
 
 MODULE = PerlIO::Util		PACKAGE = PerlIO::Util		
 
@@ -221,6 +239,7 @@ BOOT:
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_flock));
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_creat));
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_excl));
+	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_tee));
 
 void
 known_layers(...)
@@ -250,7 +269,7 @@ PREINIT:
 	STRLEN laylen;
 PPCODE:
 	laypv = SvPV(layer, laylen);
-	if(laypv[0] == ':'){ /* ignore this layer prefix */
+	if(laypv[0] == ':'){ /* ignore a layer prefix */
 		laypv++;
 		laylen--;
 	}
@@ -288,3 +307,15 @@ PPCODE:
 		XSRETURN_PV(poped_layer);
 	}
 
+void
+getarg(filehandle)
+	PerlIO* filehandle
+PREINIT:
+	PerlIO_funcs* tab;
+PPCODE:
+	tab = PerlIOBase(filehandle)->tab;
+	if(tab->Getarg){
+		ST(0) = tab->Getarg(aTHX_ filehandle, NULL, 0);
+		sv_2mortal(ST(0));
+		XSRETURN(1);
+	}

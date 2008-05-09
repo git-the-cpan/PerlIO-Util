@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -18,7 +18,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.07
+This document describes PerlIO::Util version 0.08
 
 =head1 SYNOPSIS
 
@@ -26,11 +26,12 @@ This document describes PerlIO::Util version 0.07
 
     # utility layers
 
-    open IN, "< :flock", ...; # with flock(IN, LOCK_SH)
     open IN, "+<:flock", ...; # with flock(IN, LOCK_EX)
 
-    open IN, "+<:creat", ...; # with O_CREAT
-    open IN, "> :excl",  ...; # with O_EXCL
+    open IN, "+<:creat :excl", ...; # with O_CREAT | O_EXCL
+
+    open OUT, ">:tee", $file, \*LOG;
+    print OUT "foo"; # print to both $file and *LOG
 
     # utility routines
 
@@ -46,8 +47,8 @@ This document describes PerlIO::Util version 0.07
 C<PerlIO::Util> provides general PerlIO utilities: utility layers and utility
 methods.
 
-C<:flock>, C<:creat> and C<:excl> are pseudo layers that don't exist on the layer
-stack.
+Utility layers are a part of C<PerlIO::Util>, but you don't need to
+say C<use PerlIO::Util> for them. They are automatically loaded.
 
 =head1 UTILITY LAYERS
 
@@ -97,6 +98,10 @@ To open a file for update, creating a new file if necessary:
 
 
 See L<perlfunc/sysopen>.
+
+=head2 :tee
+
+The C<:tee> layer creates a multiplex output stream like C<tee(1)>.
 
 =head1 UTILITY METHODS
 

@@ -1,5 +1,9 @@
 Revision history for PerlIO-Util
 
+0.08 Fri May  9 09:34:33 2008
+	- add :tee layer
+	- add PerlIO/(flock.pm|creat.pm|excl.pm|tee.pm) for autoloading
+
 0.07 Tue Apr 29 10:53:52 2008
 	- use get_cv() instead of get_cvn_flags() for Win32 (thanks to Taro Nishino)
 

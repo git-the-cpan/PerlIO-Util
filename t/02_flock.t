@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 19;
+use Test::More tests => 21;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -75,7 +75,10 @@ isnt system($^X, "-Mblib", $helper, "+<:flock(non-blocking)", $file), 0,
 		"shared lock in child process";
 	isnt system($^X, "-Mblib", $helper, "+<:flock(non-blocking)", $file), 0,
 		"exclusive lock in child process";
+	close IN;
 }
 
+ok  open(IN,  '<:flock(LOCK_NB)', $file), "open IN -> success";
+ok !open(IN2, '<:flock(LOCK_NB)', File::Spec->devnull), "open IN2 -> failure";
 
-ok close(IN), "END";
+ok !defined(fileno IN2), "IN2 -> not opened";

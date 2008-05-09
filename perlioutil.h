@@ -119,6 +119,9 @@ PerlIOUnix_oflags(const char *mode)
     }
     return oflags;
 }
+
+
+
 #endif /* WIN32 */
 
 
