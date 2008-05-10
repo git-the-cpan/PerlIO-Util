@@ -78,7 +78,6 @@ isnt system($^X, "-Mblib", $helper, "+<:flock(non-blocking)", $file), 0,
 	close IN;
 }
 
-ok  open(IN,  '<:flock(LOCK_NB)', $file), "open IN -> success";
-ok !open(IN2, '<:flock(LOCK_NB)', File::Spec->devnull), "open IN2 -> failure";
-
-ok !defined(fileno IN2), "IN2 -> not opened";
+ok open(PROC, '-|', $^X, '-e', 'print "{foo}"'), "open PROC, $^X";
+is scalar(<PROC>), '{foo}', "read from process";
+ok !(binmode *PROC, ':flock(LOCK_NB)'), 'binmode(*PROC, ":flock") -> failure';

@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -12,13 +12,15 @@ XSLoader::load(__PACKAGE__, $VERSION);
 1;
 __END__
 
+=encoding utf-8
+
 =head1 NAME
 
 PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.08
+This document describes PerlIO::Util version 0.09
 
 =head1 SYNOPSIS
 
@@ -102,6 +104,8 @@ See L<perlfunc/sysopen>.
 =head2 :tee
 
 The C<:tee> layer creates a multiplex output stream like C<tee(1)>.
+
+It is B<EXPERIMENTAL>.
 
 =head1 UTILITY METHODS
 

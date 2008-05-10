@@ -1,5 +1,10 @@
 Revision history for PerlIO-Util
 
+0.09 Sat May 10 11:02:52 2008
+	- fixed an uninitialized pointer exception in :tee
+	- fixed some issues in :tee
+	- add seek() to :tee
+
 0.08 Fri May  9 09:34:33 2008
 	- add :tee layer
 	- add PerlIO/(flock.pm|creat.pm|excl.pm|tee.pm) for autoloading

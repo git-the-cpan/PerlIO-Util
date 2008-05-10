@@ -27,7 +27,7 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 	lock_mode = (*fp)->flags & PERLIO_F_CANWRITE ? LOCK_EX : LOCK_SH;
 
 	if(SvOK(arg)){
-		const char* blocking = SvPV_nolen(arg);
+		const char* blocking = SvPV_nolen_const(arg);
 
 		if(strEQ(blocking, "blocking")){
 			/* noop */
@@ -307,6 +307,8 @@ PPCODE:
 		XSRETURN_PV(poped_layer);
 	}
 
+=pod
+
 void
 getarg(filehandle)
 	PerlIO* filehandle
@@ -319,3 +321,4 @@ PPCODE:
 		sv_2mortal(ST(0));
 		XSRETURN(1);
 	}
+=cut

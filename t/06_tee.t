@@ -1,10 +1,13 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 29;
+use Test::More tests => 50;
 
 use FindBin qw($Bin);
 use File::Spec;
+use Fcntl qw(SEEK_SET SEEK_END);
+use Errno qw(EBADF);
+use IO::Handle ();
 
 use PerlIO::Util;
 
@@ -75,8 +78,18 @@ is $y, "xyz", "append to y";
 
 close $tee;
 
-my $file = File::Spec->catfile($Bin, 'util', '.tee');
+### FILE ###
 
+sub slurp{
+	my $file = shift;
+	open my $in, '<', $file or die $!;
+	local $/;
+	return scalar <$in>;
+}
+
+my $file = File::Spec->join($Bin, 'util', '.tee');
+
+# \$x, $file
 ok open($tee, '>:tee', \$x, $file), 'open \$scalar, $file';
 ok -e $file, '$file created';
 
@@ -84,7 +97,99 @@ print $tee "foobar";
 close $tee;
 
 is $x, "foobar", "to scalar";
-is do{ open my $in, '<', $file or die $!; local $/; scalar <$in> },
-	"foobar", "to file";
+is slurp($file), "foobar", "to file";
 
-ok unlink($file), "(cleanup)";
+# $file, \$x
+ok open($tee, '>:tee', $file, \$x), 'open $file, \$x';
+
+print $tee "fooba";
+
+ok seek($tee, 2, SEEK_SET), "seek SET";
+print $tee "*";
+ok seek($tee, 0, SEEK_END), "seek END";
+print $tee "r";
+
+close $tee;
+
+is $x, "fo*bar", "to scalar";
+is slurp($file), "fo*bar", "to file";
+
+
+
+# '>>'
+open($tee, '>', \$x);
+$tee->push_layer(tee => ">> $file");
+
+print $tee "foobar";
+close $tee;
+
+is slurp($file), "fo*barfoobar", "append to file";
+
+# auto flush
+
+ok open($tee, '>:tee', \$x, $file), "open";
+$tee->autoflush(1);
+
+print $tee "foo";
+
+is slurp($file), "foo", "autoflush enabled";
+
+$tee->autoflush(0);
+
+print $tee "bar";
+
+is slurp($file), "foo", "autoflush disabled";
+
+# binmode
+$tee->autoflush(1);
+my $CRLF = "\015\012";
+
+binmode $tee, ':crlf';
+print $tee "\n";
+is slurp($file), "foobar$CRLF", "binmode:crlf";
+
+binmode $tee;
+print $tee "\n";
+is slurp($file), "foobar$CRLF\n", "binmode:raw";
+is $x,           "foobar$CRLF\n", "(to x)";
+
+close $tee;
+
+# duplicate
+open $tee, '>:tee', \$x, $file;
+ok open(my $t2, '>&', $tee), "dup";
+
+is_deeply [ $t2->get_layers() ], [ $tee->get_layers() ], "layer stack";
+
+print $t2  "foo.";
+close $t2;
+
+is slurp($file), "foo.", "print to duplicated handle";
+
+seek $tee, 0, SEEK_END;
+
+print $tee "bar";
+close $tee;
+
+is slurp($file), "foo.bar", "print to duplicating handle";
+
+unlink($file);
+
+
+
+# Error Handling
+
+ok !eval{ open $tee, '<:tee', \($x, $y) }, "cannot tee for reading";
+
+ok !open($tee, '>:tee', \$x, File::Spec->join($Bin, 'util', 'no_such_dir', 'file')),
+	"no such file";
+
+ok !eval{
+	STDIN->push_layer(tee => \*STDOUT);
+}, "Cannot tee for reading";
+is $!+0, EBADF, "Bad file descriptor";
+
+ok !eval{
+	STDOUT->push_layer(tee => \*STDIN);
+}, "Cannot tee for reading";
+is $!+0, EBADF, "Bad file descriptor";
