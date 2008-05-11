@@ -2,12 +2,22 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
 
 *IO::Handle::get_layers = \&PerlIO::get_layers;
+
+sub open{
+	@_ >= 3
+		or do{ require Carp; Carp::croak('Usage: PerlIO::Util->open($mode, @args)') };
+
+	CORE::open my $anonio, $_[1], @_[2 .. $#_]
+		or do{ require Carp; local $" = ', ';Carp::croak("Cannot open(@_): $!"); };
+
+	return bless $anonio => 'IO::Handle';
+}
 
 1;
 __END__
@@ -20,7 +30,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.09
+This document describes PerlIO::Util version 0.10
 
 =head1 SYNOPSIS
 
@@ -50,7 +60,7 @@ C<PerlIO::Util> provides general PerlIO utilities: utility layers and utility
 methods.
 
 Utility layers are a part of C<PerlIO::Util>, but you don't need to
-say C<use PerlIO::Util> for them. They are automatically loaded.
+say C<use PerlIO::Util> for loading them. They are automatically loaded.
 
 =head1 UTILITY LAYERS
 
@@ -69,11 +79,12 @@ granted.
 
 For example:
 
-	open IN, "<:flock", $file;               # tries shared lock, or waits
-	                                         # until the lock is granted.
+	# tries shared lock, or waits until the lock is granted
+	open IN, "<:flock", $file;
 	open IN, "<:flock(blocking)", $file;     # ditto.
 
-	open IN, "<:flock(non-blocking)", $file; # tries shared lock, or returns undef.
+	# tries shared lock, or returns undef
+	open IN, "<:flock(non-blocking)", $file; 
 	open IN, "<:flock(LOCK_NB)", $file;      # ditto.
 
 See L<perlfunc/flock>.
@@ -92,22 +103,59 @@ Here are things you can do with them:
 To open a file for update, creating a new file which must
 not previously exist:
 
-	my $fh = PerlIO::Util->open('+< :excl :creat', $file);
+	open(IO, '+< :excl :creat', $file);
 
 To open a file for update, creating a new file if necessary:
 
-	my $fh = PerlIO::Util->open('+< :creat', $file);
+	open(IO, '+< :creat', $file);
 
 
 See L<perlfunc/sysopen>.
 
 =head2 :tee
 
-The C<:tee> layer creates a multiplex output stream like C<tee(1)>.
+The C<:tee> layer provides a multiplex output stream like C<tee(1)> command.
+That is, it is used to multiplex output to one or more files (or scalars via
+the C<:scalar> layer).
+
+You can use C<push_layer()> (defined in C<PerlIO::Util>) to add a I<source>
+to a filehandle. The I<source> may be a file name, a scalar reference, or a
+filehandle. For example:
+
+	$fh->push_layer(tee => $file);    # meaning "> $file"
+	$fh->push_layer(tee => ">>$file");# append mode
+	$fh->push_layer(tee => \$scalar); # via :scalar
+	$fh->push_layer(tee => \*OUT);    # shallow copy, not duplication
+
+You can also use C<open()> with a C<:tee> layer and multiple arguments.
+However, it is just a syntax sugar to call C<push_layer()>: One C<:tee>
+layer has a single extra filehandle, so arguments C<$x, $y, $z>, for example,
+provides a filehandle with one C<:perlio> layer and two C<:tee> layers that
+have a filehandle with C<:perlio> internally.
+
+	open my $tee, '>:tee', $x, $y, $z;
+	# the code above means:
+	#   open my $tee, '>', $x;
+	#   $tee->push_layer(tee => $y);
+	#   $tee->push_layer(tee => $z);
+
+	$tee->get_layers(); # => "perlio", "tee($y)", "tee($z)"
+	$tee->pop_layer();  # "tee($z)" is popped
+	$tee->pop_layer();  # "tee($y)" is popped
+	# now $tee is a filehandle only to $x
+
 
 It is B<EXPERIMENTAL>.
 
 =head1 UTILITY METHODS
+
+=head2 PerlIO::Util-E<gt>open($mode, @args)
+
+Calls C<open()> of Perl, and returns an anonymus filehandle. It dies on
+fail.
+
+Unlike Perl's (nor C<IO::File>'s), I<$mode> is always
+required. 
 
 =head2 PerlIO::Util-E<gt>known_layers()
 
@@ -122,13 +170,15 @@ See L<PerlIO/Querying the layers of filehandles>.
 =head2 I<FILEHANDLE>-E<gt>push_layer(I<layer> [ => I<arg>])
 
 Equivalent to C<binmode(*FILEHANDLE, ':layer(arg)')>, but accepts any type of
-I<arg>, e.g. a scalar reference to the C<scalar> layer.
+I<arg>, e.g. a scalar reference to the C<:scalar> layer.
 
 This method dies on fail. Otherwise, it returns I<FILEHANDLE>.
 
 =head2 I<FILEHANDLE>-E<gt>pop_layer()
 
-Equivalent to C<binmode(*FILEHANDLE, ':pop')>.
+Equivalent to C<binmode(*FILEHANDLE, ':pop')>. It removes a top level layer
+from I<FILEHANDLE>, but note that you cannot remove dummy layers such as
+C<:utf8> or C<:flock>.
 
 This method returns the name of the poped layer.
 

@@ -11,9 +11,26 @@ PerlIO::tee - Multiplex output layer
 
 	# XXX: the tee layer is EXPERIMENTAL
 
-	open my $out, '>>:tee', @files_and_filehandles;
+	open my $out, '>>:tee', $file, @sources;
 
-	STDERR->push_layer(tee => $file_or_filehandle);
+	STDERR->push_layer(tee => $source);
+
+=head1 EXAMPLE
+
+Here is an minimal implementation of C<tee(1)>.
+
+	#!/usr/bin/perl -w
+	# Usage: $0 files...
+	use strict;
+	use PerlIO::Util;
+
+	STDOUT->push_layer(tee => $_) for @ARGV;
+
+	while(read STDIN, $_, 2**12){
+		print;
+	}
+	__END__
+
 
 =head1 SEE ALSO
 

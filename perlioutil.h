@@ -17,7 +17,7 @@
 #include "ppport.h"
 
 
-#ifdef WIN32 /* ActivePerl */
+#if defined(WIN32) && defined(ACTIVEPERL_PRODUCT) /* ActivePerl */
 /* missing functions copied from perlio.c */
 
 static PerlIO_funcs *

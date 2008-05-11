@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 21;
+use Test::More tests => 18;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -78,6 +78,3 @@ isnt system($^X, "-Mblib", $helper, "+<:flock(non-blocking)", $file), 0,
 	close IN;
 }
 
-ok open(PROC, '-|', $^X, '-e', 'print "{foo}"'), "open PROC, $^X";
-is scalar(<PROC>), '{foo}', "read from process";
-ok !(binmode *PROC, ':flock(LOCK_NB)'), 'binmode(*PROC, ":flock") -> failure';

@@ -1,5 +1,11 @@
 Revision history for PerlIO-Util
 
+0.10 Sun May 11 12:11:06 2008
+	- add binmode() routine for :tee (thanks to Taro Nishino)
+	- add open() method
+	- add misc/piotee.pl for example
+	- internal cleanup
+
 0.09 Sat May 10 11:02:52 2008
 	- fixed an uninitialized pointer exception in :tee
 	- fixed some issues in :tee

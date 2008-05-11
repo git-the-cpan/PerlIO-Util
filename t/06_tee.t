@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 50;
+use Test::More tests => 53;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -84,6 +84,7 @@ sub slurp{
 	my $file = shift;
 	open my $in, '<', $file or die $!;
 	local $/;
+	binmode $in;
 	return scalar <$in>;
 }
 
@@ -144,14 +145,20 @@ is slurp($file), "foo", "autoflush disabled";
 $tee->autoflush(1);
 my $CRLF = "\015\012";
 
+binmode $tee;
+print $tee "\n";
+is slurp($file), "foobar\n", "binmode:raw";
+is $x,           "foobar\n", "(to main)";
+
 binmode $tee, ':crlf';
 print $tee "\n";
-is slurp($file), "foobar$CRLF", "binmode:crlf";
+is slurp($file), "foobar\n$CRLF", "binmode:crlf";
+is $x,           "foobar\n$CRLF", "(to main)";
 
 binmode $tee;
 print $tee "\n";
-is slurp($file), "foobar$CRLF\n", "binmode:raw";
-is $x,           "foobar$CRLF\n", "(to x)";
+is slurp($file), "foobar\n$CRLF\n", "binmode:raw";
+is $x,           "foobar\n$CRLF\n", "(to main)";
 
 close $tee;
 

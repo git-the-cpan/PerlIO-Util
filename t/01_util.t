@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 18;
 
 use IO::Handle;
 use File::Spec;
@@ -49,6 +49,12 @@ is *DATA->push_layer('crlf'), \*DATA,
 
 is *DATA->pop_layer(), 'crlf', 'pop_layer() returns the name of the poped layer';
 
+# open()
+
+my $io = PerlIO::Util->open('<', \(my $x = 'foo'));
+ok $io, 'PerlIO::Util->open()';
+ok defined( fileno $io ), "... opened";
+
 # checks on errors
 
 eval{
@@ -70,6 +76,16 @@ eval{
 };
 
 like $@, qr/Invalid filehandle/, 'pop_layer(): Invalid filehandle';
+
+eval{
+	PerlIO::Util->open('file');
+};
+like $@, qr/Usage/i, 'open(): too few arguments';
+
+eval{
+	PerlIO::Util->open('<', 'no such file');
+};
+like $@, qr/Cannot open/i, 'open(): cannot open file';
 
 __DATA__
 foo

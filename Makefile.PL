@@ -16,5 +16,5 @@ WriteMakefile(
 
     LICENSE             => 'perl',
 
-    clean               => { FILES => 'PerlIO-Util-*' },
+    clean               => { FILES => 'PerlIO-Util-* *.gcov *.gcda *.gcno' },
 );
