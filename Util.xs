@@ -91,6 +91,48 @@ PPCODE:
 
 =for debug
 
+#define XF(c) do{\
+		if(flags & (PERLIO_F_##c)){\
+			n++;\
+			mXPUSHp( #c, sizeof( #c ) - 1 );\
+		}\
+	}while(0)
+
+
+void
+flags(filehandle)
+	PerlIO* filehandle
+PREINIT:
+	U32 flags;
+	IV n = 0;
+PPCODE:
+	if(!PerlIOValid(filehandle)) XSRETURN_EMPTY;
+
+	flags = PerlIOBase(filehandle)->flags;
+
+	XF(EOF);
+	XF(CANWRITE);
+	XF(CANREAD);
+	XF(ERROR);
+	XF(TRUNCATE);
+	XF(APPEND);
+	XF(CRLF);
+	XF(UTF8);
+	XF(UNBUF);
+	XF(WRBUF);
+	XF(RDBUF);
+	XF(LINEBUF);
+	XF(TEMP);
+	XF(OPEN);
+	XF(FASTGETS);
+	XF(TTY);
+	XF(NOTREG);
+
+	XSRETURN(n);
+
+
+=for debug
+
 void
 getarg(filehandle)
 	PerlIO* filehandle
@@ -103,4 +145,5 @@ PPCODE:
 		sv_2mortal(ST(0));
 		XSRETURN(1);
 	}
+
 =cut

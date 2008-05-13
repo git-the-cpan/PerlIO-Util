@@ -214,7 +214,9 @@ static IV
 PerlIOTee_popped(pTHX_ PerlIO* f){
 	PerlIOTee* t = PerlIOSelf(f, PerlIOTee);
 
-	PerlIO_close(t->out);
+	if(t->arg && SvTYPE(t->arg) != SVt_PVIO){
+		PerlIO_close(t->out);
+	}
 	t->out = NULL;
 
 	SvREFCNT_dec(t->arg);
@@ -225,10 +227,9 @@ PerlIOTee_popped(pTHX_ PerlIO* f){
 static IV
 PerlIOTee_binmode(pTHX_ PerlIO* f){
 	PerlIOTee* t = PerlIOSelf(f, PerlIOTee);
-	PerlIO* next = PerlIONext(f);
 
-	PerlIO_binmode(aTHX_ t->out, '>', O_BINARY, Nullch);
-	return PerlIO_binmode(aTHX_ next, '>', O_BINARY, Nullch);
+	PerlIOBase_binmode(aTHX_ f);
+	return PerlIO_binmode(aTHX_ t->out, '>', O_BINARY, Nullch);
 }
 
 static SV*

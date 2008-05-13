@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 53;
+use Test::More tests => 54;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -64,8 +64,9 @@ is $y, "foo", "to y";
 
 ok close($tee), "close";
 
-ok defined(fileno($o)), "the pushed filehandle remains opened";
-
+print $o "bar";
+is $y, "foobar", "the pushed filehandle remains opened";
+ok close($o), "close the pushed filehandle";
 
 # with open mode
 $x = $y = 'x';

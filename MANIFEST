@@ -22,6 +22,7 @@ t/06_tee.t
 t/99_pod.t
 t/util/.lock
 t/util/locktest.pl
+missing.c
 pseudo_layers.c
 tee.c
 Util.xs

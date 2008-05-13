@@ -13,7 +13,10 @@ PerlIO::tee - Multiplex output layer
 
 	open my $out, '>>:tee', $file, @sources;
 
-	STDERR->push_layer(tee => $source);
+	$out->push_layer(tee => $file);
+	$out->push_layer(tee => ">> $file");
+	$out->push_layer(tee => \$scalar);
+	$out->push_layer(tee => \*FILEHANDLE);
 
 =head1 EXAMPLE
 

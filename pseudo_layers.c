@@ -44,8 +44,12 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 		}
 	}
 
-	PerlIO_flush(fp);
 	fd  = PerlIO_fileno(fp);
+	if(fd == -1 && PerlIOBase(fp)->flags & PERLIO_F_OPEN){ /* maybe the scalar layer? */
+		return 0; /* success */
+	}
+
+	PerlIO_flush(fp);
 	ret = PerlLIO_flock(fd, lock_mode);
 
 	PerlIO_debug(STRINGIFY(FLOCK) "(%d, %s) -> %d\n", fd,

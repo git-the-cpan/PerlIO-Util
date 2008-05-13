@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -10,11 +10,17 @@ XSLoader::load(__PACKAGE__, $VERSION);
 *IO::Handle::get_layers = \&PerlIO::get_layers;
 
 sub open{
-	@_ >= 3
-		or do{ require Carp; Carp::croak('Usage: PerlIO::Util->open($mode, @args)') };
+	unless(@_ >= 3){
+		require Carp;
+		Carp::croak('Usage: PerlIO::Util->open($mode, @args)');
+	}
 
-	CORE::open my $anonio, $_[1], @_[2 .. $#_]
-		or do{ require Carp; local $" = ', ';Carp::croak("Cannot open(@_): $!"); };
+	my $anonio;
+	unless(CORE::open $anonio, $_[1], @_[2 .. $#_]){
+		require Carp;
+		local $" = ', ';
+		Carp::croak("Cannot open(@_): $!");
+	}
 
 	return bless $anonio => 'IO::Handle';
 }
@@ -30,7 +36,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.10
+This document describes PerlIO::Util version 0.11
 
 =head1 SYNOPSIS
 

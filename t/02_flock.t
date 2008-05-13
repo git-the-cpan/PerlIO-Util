@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 18;
+use Test::More tests => 20;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -46,7 +46,7 @@ ok close(IN), "close";
 	no warnings 'io';
 	select select my $unopened;
 	
-	ok !defined(binmode $unopened, ':flock'), ":flock to unopened filehandle (binmode)";
+	ok !defined(binmode $unopened, ':flock'),     ":flock to unopened filehandle (binmode)";
 	ok !eval{ $unopened->push_layer('flock');1 }, ":flock to unopened filehandle (push_layer)";
 }
 ok open(IN, "<:flock", $file), "open(readonly) in this process";
@@ -78,3 +78,8 @@ isnt system($^X, "-Mblib", $helper, "+<:flock(non-blocking)", $file), 0,
 	close IN;
 }
 
+# irregular
+open my $s, '>', \my $x;
+$! = 0;
+ok binmode($s, ':flock'), 'flock to scalar handle is noop';
+is $!, '', '... no error';

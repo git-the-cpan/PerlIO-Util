@@ -7,7 +7,7 @@ PerlIO::creat - Creates a file if it doesn't exist
 
 =head1 SYNOPSIS
 
-	open my $io,  '+<:creat', $file;
+	open my $io,  '+< :creat', $file;
 
 =head1 SEE ALSO
 

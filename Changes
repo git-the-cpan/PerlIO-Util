@@ -1,8 +1,12 @@
 Revision history for PerlIO-Util
 
+0.11 Tue May 13 09:20:25 2008
+	- fix an issue of binmode() on Win32 (thanks to Taro Nishino)
+	- fix some  problems
+
 0.10 Sun May 11 12:11:06 2008
 	- add binmode() routine for :tee (thanks to Taro Nishino)
-	- add open() method
+	- add PerlIO::Util->open() method
 	- add misc/piotee.pl for example
 	- internal cleanup
 

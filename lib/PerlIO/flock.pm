@@ -10,6 +10,9 @@ PerlIO::flock - Easy flock() interface
 	open my $in,  '< :flock', $file; # shared lock
 	open my $out, '+<:flock', $file; # exclusive lock
 
+	binmode($fh, ':flock(blocking)');
+	binmode($fh, ':flock(non-blocking)');
+
 =head1 SEE ALSO
 
 L<PerlIO::Util>.

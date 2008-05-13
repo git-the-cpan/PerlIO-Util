@@ -7,7 +7,7 @@ PerlIO::excl - Creates a file only if it doesn't exist
 
 =head1 SYNOPSIS
 
-	open my $io,  '+<:creat :excl', $file;
+	open my $io,  '+< :creat :excl', $file;
 
 =head1 SEE ALSO
 

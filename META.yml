@@ -1,11 +1,11 @@
 --- #YAML:1.0
 name:                PerlIO-Util
-version:             0.10
+version:             0.11
 abstract:            A selection of general PerlIO utilities
 license:             perl
 author:              
     - Goro Fuji <gfuji (at) cpan.org>
-generated_by:        ExtUtils::MakeMaker version 6.42
+generated_by:        ExtUtils::MakeMaker version 6.44
 distribution_type:   module
 requires:     
 meta-spec:
