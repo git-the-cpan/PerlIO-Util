@@ -12,16 +12,16 @@ BEGIN{
 use PerlIO::Util;
 use Fatal qw(unlink);
 
-use subs 'open';
-sub open(*;$@){
-	my($fh, $layers, @arg) = @_;
-	no strict 'refs';
-	my $st = CORE::open(*$fh, $layers, @arg);
-	if(!$st){
-		diag "open failed: $!";
-	}
-	return $st;
-}
+#use subs 'open';
+#sub open(*;$@){
+#	my($fh, $layers, @arg) = @_;
+#	no strict 'refs';
+#	my $st = CORE::open(*$fh, $layers, @arg);
+#	if(!$st){
+#		diag "open failed: $!";
+#	}
+#	return $st;
+#}
 
 ok scalar(PerlIO::Layer->find('creat')), "':creat' is available";
 
@@ -36,11 +36,9 @@ ok -e $file, "after open: the file does exist";
 
 close *IN;
 unlink $file;
-ok open(*IN, "<:utf8 :creat", $file), "open with :utf8 :creat";
-ok -e $file, "exist";
+ok !open(*IN, "<:utf8 :creat", $file), "open with :utf8 :creat -> failure";
+ok !-e $file, "not exist";
 
-close *IN;
-unlink $file;
 ok open(*IN, "<:creat :utf8", $file), "open with :creat :utf8";
 ok -e $file, "exist";
 

@@ -1,5 +1,10 @@
 Revision history for PerlIO-Util
 
+0.12 Fri May 16 00:00:01 2008
+	- change for the pseudo layers to (correctly) refuse other pseudo layers
+		 before them (e.g. ":utf8 :flock" or ":raw :creat" is NG)
+	- try fixing PerlIOTee_binmode() again
+
 0.11 Tue May 13 09:20:25 2008
 	- fix an issue of binmode() on Win32 (thanks to Taro Nishino)
 	- fix some  problems

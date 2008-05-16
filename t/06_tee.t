@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 54;
+use Test::More tests => 56;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -160,6 +160,15 @@ binmode $tee;
 print $tee "\n";
 is slurp($file), "foobar\n$CRLF\n", "binmode:raw";
 is $x,           "foobar\n$CRLF\n", "(to main)";
+
+close $tee;
+
+# binmode clears UTF8 mode
+open $tee, '>:tee :utf8', \$x, \$y;
+
+ok scalar(grep{ $_ eq 'utf8' } $tee->get_layers()), ':tee with :utf8';
+binmode $tee;
+ok!scalar(grep{ $_ eq 'utf8' } $tee->get_layers()), 'binmode:raw';
 
 close $tee;
 

@@ -86,7 +86,6 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 		PerlIO* f, int narg, SV** args, int flags){
 	PerlIO_funcs* tab = NULL;
 	char numeric_mode[5];
-	int i;
 
 	PERL_UNUSED_ARG(self);
 
@@ -109,20 +108,20 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 		perm = 0666;
 	}
 
-	for(i = n-1; i >= 0; i--){
-		tab = LayerFetch(layers, i);
-
-		if(tab && tab->Open){
-			break;
-		}
+	tab = LayerFetchSafe(layers, n - 1);
+	if(!tab){
+		tab = PerlIO_find_layer(aTHX_ STR_WITH_LEN("perlio"), 0);
 	}
-	assert(tab && tab->Open);
+	if(!(tab && tab->Open)){
+		SETERRNO(EINVAL, LIB_INVARG);
+		return NULL;
+	}
 /*
 	warn("# open(tab=%s, mode=%s, imode=0x%x, perm=0%o)",
 		tab->name, mode, imode, perm);
 //*/
 
-	return (*tab->Open)(aTHX_ tab, layers, i,  mode,
+	return (*tab->Open)(aTHX_ tab, layers, n - 1,  mode,
 				fd, imode, perm, f, narg, args);
 }
 

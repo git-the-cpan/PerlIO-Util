@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 11;
+use Test::More tests => 13;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -35,10 +35,12 @@ ok !open(*IN, '<:excl :creat', $file), "open with :excl and :creat -> fail";
 unlink $file;
 
 
-ok open(*IN, '<:utf8 :creat :excl', $file), "open with :utf8, :creat and :excl -> success";
+ok open(*IN, '<:creat :excl :utf8', $file), "open with :utf8, :creat and :excl -> success";
 ok -e $file, "created";
+like join(' ', IN->get_layers()), qr/utf8/, "to utf8 mode";
 
-ok open(*IN, '<:utf8 :flock :creat', $file), "open with :utf8, :flock and :creat -> success";
+ok open(*IN, '<:creat :flock :utf8', $file), "open with :utf8, :flock and :creat -> success";
+like join(' ', IN->get_layers()), qr/utf8/, "to utf8 mode";
 close IN;
 
 ok unlink($file), "(cleanup)";

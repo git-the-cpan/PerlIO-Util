@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -36,7 +36,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.11
+This document describes PerlIO::Util version 0.12
 
 =head1 SYNOPSIS
 
@@ -101,28 +101,25 @@ See L<perlfunc/flock>.
 
 They append O_CREAT or O_EXCL to the open flags.
 
-With C<:creat> and C<:excl>, you can emulate a part of C<sysopen()> without
-C<Fcntl>.
-
-Here are things you can do with them:
-
-To open a file for update, creating a new file which must
-not previously exist:
-
-	open(IO, '+< :excl :creat', $file);
-
-To open a file for update, creating a new file if necessary:
+When you'd like to create a file but not to truncate it, then you can use 
+the C<:creat> layer with the open mode '<' or '+<'.
 
 	open(IO, '+< :creat', $file);
 
+When you'd like to create a file only if it doesn't exist before, then you
+can use the C<:excl> layer with the C<:creat> layer and '<' or '+<'.
+
+	open(IO, '+< :excl :creat', $file);
+
+That is, it is used to emulate a part of C<sysopen()> without C<Fcntl>.
 
 See L<perlfunc/sysopen>.
 
 =head2 :tee
 
 The C<:tee> layer provides a multiplex output stream like C<tee(1)> command.
-That is, it is used to multiplex output to one or more files (or scalars via
-the C<:scalar> layer).
+It is used to make a filehandle write to one or more files (or
+scalars via the C<:scalar> layer) at the same time.
 
 You can use C<push_layer()> (defined in C<PerlIO::Util>) to add a I<source>
 to a filehandle. The I<source> may be a file name, a scalar reference, or a
@@ -133,7 +130,7 @@ filehandle. For example:
 	$fh->push_layer(tee => \$scalar); # via :scalar
 	$fh->push_layer(tee => \*OUT);    # shallow copy, not duplication
 
-You can also use C<open()> with a C<:tee> layer and multiple arguments.
+You can also use C<:tee> with multiple arguments.
 However, it is just a syntax sugar to call C<push_layer()>: One C<:tee>
 layer has a single extra filehandle, so arguments C<$x, $y, $z>, for example,
 provides a filehandle with one C<:perlio> layer and two C<:tee> layers that
@@ -146,26 +143,25 @@ have a filehandle with C<:perlio> internally.
 	#   $tee->push_layer(tee => $z);
 
 	$tee->get_layers(); # => "perlio", "tee($y)", "tee($z)"
+
 	$tee->pop_layer();  # "tee($z)" is popped
 	$tee->pop_layer();  # "tee($y)" is popped
 	# now $tee is a filehandle only to $x
 
-
-It is B<EXPERIMENTAL>.
+This layer is B<EXPERIMENTAL>.
 
 =head1 UTILITY METHODS
 
 =head2 PerlIO::Util-E<gt>open($mode, @args)
 
-Calls C<open()> of Perl, and returns an anonymus filehandle. It dies on
-fail.
+Calls built-in C<open()>, and returns an anonymus C<IO::Handle> instance.
+It dies on fail.
 
-Unlike Perl's (nor C<IO::File>'s), I<$mode> is always
-required. 
+Unlike Perl's C<open()> (nor C<IO::File>'s), I<$mode> is always required. 
 
 =head2 PerlIO::Util-E<gt>known_layers()
 
-Retuns the known layer names.
+Returns the known layer names.
 
 =head2 I<FILEHANDLE>-E<gt>get_layers()
 
