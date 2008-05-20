@@ -5,12 +5,8 @@
 
 */
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
-#include "perlioflock.h"
 #include "perlioutil.h"
+#include "perlioflock.h"
 
 static IV
 PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
@@ -119,7 +115,7 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 /*
 	warn("# open(tab=%s, mode=%s, imode=0x%x, perm=0%o)",
 		tab->name, mode, imode, perm);
-//*/
+// */
 
 	return (*tab->Open)(aTHX_ tab, layers, n - 1,  mode,
 				fd, imode, perm, f, narg, args);

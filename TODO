@@ -1,0 +1,16 @@
+PerlIO-Util/TODO
+
+* PerlIO::reverse - Reads lines reversely
+
+	$in = PerlIO::Util->open('<:reverse', $file);
+
+
+* PerlIO::dir - Reads directories
+
+	$in = PerlIO::Util->open('<:dir', $dir);
+
+
+* PerlIO::grep - Reads lines matching a pattern
+
+	$in = PerlIO::Util->open('<:grep(pattern)', $file);
+

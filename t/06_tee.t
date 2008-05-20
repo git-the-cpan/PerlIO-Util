@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 56;
+use Test::More tests => 54;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -89,7 +89,8 @@ sub slurp{
 	return scalar <$in>;
 }
 
-my $file = File::Spec->join($Bin, 'util', '.tee');
+my $file  = File::Spec->join($Bin, 'util', '.tee');
+my $file2 = File::Spec->join($Bin, 'util', '.tee2');
 
 # \$x, $file
 ok open($tee, '>:tee', \$x, $file), 'open \$scalar, $file';
@@ -127,6 +128,14 @@ close $tee;
 
 is slurp($file), "fo*barfoobar", "append to file";
 
+# a layer before :tee
+ok open($tee, '>:stdio:tee', $file, $file2), "open:stdio:tee";
+is_deeply [$tee->get_layers], ['stdio', "tee($file2)"], "layer stack";
+print $tee "foo";
+close $tee;
+is slurp($file), "foo", "stdio(1)";
+is slurp($file), "foo", "stdio(2)";
+
 # auto flush
 
 ok open($tee, '>:tee', \$x, $file), "open";
@@ -141,36 +150,6 @@ $tee->autoflush(0);
 print $tee "bar";
 
 is slurp($file), "foo", "autoflush disabled";
-
-# binmode
-$tee->autoflush(1);
-my $CRLF = "\015\012";
-
-binmode $tee;
-print $tee "\n";
-is slurp($file), "foobar\n", "binmode:raw";
-is $x,           "foobar\n", "(to main)";
-
-binmode $tee, ':crlf';
-print $tee "\n";
-is slurp($file), "foobar\n$CRLF", "binmode:crlf";
-is $x,           "foobar\n$CRLF", "(to main)";
-
-binmode $tee;
-print $tee "\n";
-is slurp($file), "foobar\n$CRLF\n", "binmode:raw";
-is $x,           "foobar\n$CRLF\n", "(to main)";
-
-close $tee;
-
-# binmode clears UTF8 mode
-open $tee, '>:tee :utf8', \$x, \$y;
-
-ok scalar(grep{ $_ eq 'utf8' } $tee->get_layers()), ':tee with :utf8';
-binmode $tee;
-ok!scalar(grep{ $_ eq 'utf8' } $tee->get_layers()), 'binmode:raw';
-
-close $tee;
 
 # duplicate
 open $tee, '>:tee', \$x, $file;
@@ -190,9 +169,9 @@ close $tee;
 
 is slurp($file), "foo.bar", "print to duplicating handle";
 
-unlink($file);
 
-
+ok unlink($file),  "unlink $file";
+ok unlink($file2), "unlink $file2";
 
 # Error Handling
 

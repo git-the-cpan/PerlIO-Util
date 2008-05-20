@@ -1,9 +1,5 @@
 /* missing functions copied from perlio.c */
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
 #include "perlioutil.h"
 
 #if defined(WIN32)

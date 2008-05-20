@@ -5,10 +5,6 @@
 	       $out->push_layer(tee => $another);
 */
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
 #include "perlioutil.h"
 
 #define CanWrite(fp) (PerlIOBase(fp)->flags & PERLIO_F_CANWRITE)
@@ -168,9 +164,11 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 		}
 	}
 	else{
-		PerlIO_pair_t pairs[] = { { NULL, &PL_sv_undef }, { NULL, &PL_sv_undef } };
-		PerlIO_list_t layers = { 1 /* refcnt */, -1 /* cur */,  2 /* len */, pairs /* array */ };
+		PerlIO_pair_t pair = { NULL, &PL_sv_undef };
+		PerlIO_list_t layers = { 1 /* refcnt */, 1 /* cur */,  1 /* len */, NULL /* array */ };
 		PerlIO_funcs* tab;
+
+		layers.array = &pair;
 
 		if(SvPOK(arg) && SvCUR(arg) > 2){
 			TeeArg(f) = parse_fname(aTHX_ arg, &mode);
@@ -179,19 +177,18 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 			TeeArg(f) = newSVsv(arg);
 		}
 
-		if(SvROK(TeeArg(f)) && (tab = PerlIO_layer_from_ref(aTHX_ SvRV(TeeArg(f))))){
-			pairs[0].funcs = (PerlIO_funcs*)tab; /* const_cast */
-			layers.cur = 1;
+		if(!(SvROK(TeeArg(f))
+			&& (tab = PerlIO_layer_from_ref(aTHX_ SvRV(TeeArg(f)))) )){
+			if(strEQ(PerlIOBase(next)->tab->name, "scalar")){
+				tab = PerlIO_find_layer(aTHX_ STR_WITH_LEN("perlio"), 0);
+			}
+			else{
+				tab = PerlIOBase(next)->tab; /* inherit */
+			}
 		}
-		else{
-			tab = PerlIO_find_layer(aTHX_ STR_WITH_LEN("perlio"), 0);
+		assert(tab);
+		pair.funcs = PERLIO_FUNCS_CAST(tab); /* const_cast */
 
-			pairs[0].funcs = PerlIO_find_layer(aTHX_ STR_WITH_LEN("unix"), 0);
-			pairs[1].funcs = tab;
-			layers.cur = 2;
-
-			assert(pairs[0].funcs/* :unix */ && pairs[1].funcs /* :perlio */);
-		}
 		if(!mode){
 			mode = "w";
 		}
@@ -205,7 +202,8 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 		return -1; /* failure */
 	}
 
-	PerlIOBase(f)->flags = PerlIOBase(TeeOut(f))->flags = PerlIOBase(next)->flags;
+	PerlIOBase(f)->flags = PerlIOBase(TeeOut(f))->flags
+		= PerlIOBase(next)->flags;
 
 	return 0;
 }
@@ -227,7 +225,9 @@ PerlIOTee_binmode(pTHX_ PerlIO* f){
 	PerlIOBase_binmode(aTHX_ f);
 
 	if(PerlIOValid(f) && TeeOut(f)){
-		return PerlIO_binmode(aTHX_ TeeOut(f), '>', O_BINARY, Nullch);
+
+		return PerlIO_binmode(aTHX_ TeeOut(f), '>'/*not used*/,
+				O_BINARY, Nullch) ? 0 : -1;
 	}
 	return -1;
 }

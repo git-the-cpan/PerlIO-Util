@@ -2,10 +2,6 @@
 	PerlIO-Util/Util.xs
 */
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
-
 #include "perlioutil.h"
 
 extern PERLIO_FUNCS_DECL(PerlIO_flock);

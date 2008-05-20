@@ -8,9 +8,11 @@ lib/PerlIO/Util.pm
 Makefile.PL
 MANIFEST			This list of files
 misc/piotee.pl
+missing.c
 perlioflock.h
 perlioutil.h
 ppport.h
+pseudo_layers.c
 README
 t/00_load.t
 t/01_util.t
@@ -19,11 +21,11 @@ t/03_creat.t
 t/04_excl.t
 t/05_extra.t
 t/06_tee.t
+t/07_tee_binmode.t
 t/99_pod.t
 t/util/.lock
 t/util/locktest.pl
-missing.c
-pseudo_layers.c
 tee.c
+TODO
 Util.xs
 META.yml                                 Module meta-data (added by MakeMaker)

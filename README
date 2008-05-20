@@ -6,8 +6,12 @@ SYNOPSIS
 
 	use PerlIO::Util;
 
-	# creates $file if needed, and calls flock(IN, LOCK_SH)
-	open IN, '<:creat :flock', $file; 
+	# to create $file if needed, and call flock($in, LOCK_EX)
+	my $in = PerlIO::Util->open('+<:creat :flock', $file); 
+
+	# to multiplex output
+	STDERR->push_layer(tee => ">> $err_log");
+
 
 INSTALLATION
 
@@ -21,8 +25,7 @@ INSTALLATION
 
 DEPENDENCIES
 
-	perl 5.8.0 or later.
-
+	Perl 5.8.0 or later, and a C compiler.
 
 COPYRIGHT AND LICENCE
 

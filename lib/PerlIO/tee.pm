@@ -1,8 +1,6 @@
 require PerlIO::Util;
 __END__
 
-=encoding utf-8
-
 =head1 NAME
 
 PerlIO::tee - Multiplex output layer
