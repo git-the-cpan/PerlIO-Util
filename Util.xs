@@ -4,6 +4,56 @@
 
 #include "perlioutil.h"
 
+
+#define PutFlag(c) do{\
+		if(PerlIOBase(f)->flags & (PERLIO_F_##c)){\
+			printf(" %s", #c);\
+		}\
+	}while(0)
+
+void
+dump_perlio(pTHX_ PerlIO* f, int level){
+	if(!PerlIOValid(f)){
+		int i;
+		for(i = 0; i < level; i++) printf("\t");
+
+		printf("(Invalid filehandle)");
+	}
+
+	while(PerlIOValid(f)){
+		int i;
+		for(i = 0; i < level; i++) printf("\t");
+
+		printf(":%s (0x%x) ", PerlIOBase(f)->tab->name, (unsigned)f);
+		PutFlag(EOF);
+		PutFlag(CANWRITE);
+		PutFlag(CANREAD);
+		PutFlag(ERROR);
+		PutFlag(TRUNCATE);
+		PutFlag(APPEND);
+		PutFlag(CRLF);
+		PutFlag(UTF8);
+		PutFlag(UNBUF);
+		PutFlag(WRBUF);
+		PutFlag(RDBUF);
+		PutFlag(LINEBUF);
+		PutFlag(TEMP);
+		PutFlag(OPEN);
+		PutFlag(FASTGETS);
+		PutFlag(TTY);
+		PutFlag(NOTREG);
+		printf("\n");
+
+		if( strEQ(PerlIOBase(f)->tab->name, "tee") ){
+			PerlIO* teeout = PerlIOTee_teeout(aTHX_ f);
+
+			dump_perlio(aTHX_ teeout, level+1);
+		}
+
+		f = PerlIONext(f);
+	}
+}
+
 extern PERLIO_FUNCS_DECL(PerlIO_flock);
 extern PERLIO_FUNCS_DECL(PerlIO_creat);
 extern PERLIO_FUNCS_DECL(PerlIO_excl);
@@ -33,6 +83,7 @@ PPCODE:
 	XSRETURN(layers->cur);
 
 MODULE = PerlIO::Util		PACKAGE = IO::Handle
+
 
 #define undef Nullsv
 
@@ -84,6 +135,15 @@ PPCODE:
 	if(GIMME_V != G_VOID){
 		XSRETURN_PV(poped_layer);
 	}
+
+
+
+void
+dump(f)
+	PerlIO* f
+CODE:
+	/* this function is only for debugging */
+	dump_perlio(aTHX_ f, 0);
 
 =for debug
 

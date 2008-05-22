@@ -20,4 +20,10 @@
 
 #include "ppport.h"
 
-#endif
+PerlIO*
+PerlIOTee_teeout(pTHX_ const PerlIO* tee);
+
+void
+dump_perlio(pTHX_ PerlIO* f, int level);
+
+#endif /*PERLIO_UTIL_H*/

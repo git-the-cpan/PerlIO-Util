@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 54;
+use Test::More tests => 59;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -91,6 +91,7 @@ sub slurp{
 
 my $file  = File::Spec->join($Bin, 'util', '.tee');
 my $file2 = File::Spec->join($Bin, 'util', '.tee2');
+my $file3 = File::Spec->join($Bin, 'util', '.tee3');
 
 # \$x, $file
 ok open($tee, '>:tee', \$x, $file), 'open \$scalar, $file';
@@ -118,7 +119,6 @@ is $x, "fo*bar", "to scalar";
 is slurp($file), "fo*bar", "to file";
 
 
-
 # '>>'
 open($tee, '>', \$x);
 $tee->push_layer(tee => ">> $file");
@@ -127,6 +127,16 @@ print $tee "foobar";
 close $tee;
 
 is slurp($file), "fo*barfoobar", "append to file";
+
+# open three files
+
+ok open($tee, '>:tee', $file, $file2, $file3), "open three files";
+print $tee 'foo';
+close $tee;
+is slurp($file),  'foo', 'to file (1)';
+is slurp($file2), 'foo', 'to file (2)';
+is slurp($file3), 'foo', 'to file (3)';
+
 
 # a layer before :tee
 ok open($tee, '>:stdio:tee', $file, $file2), "open:stdio:tee";
@@ -172,6 +182,7 @@ is slurp($file), "foo.bar", "print to duplicating handle";
 
 ok unlink($file),  "unlink $file";
 ok unlink($file2), "unlink $file2";
+ok unlink($file3), "unlink $file3";
 
 # Error Handling
 

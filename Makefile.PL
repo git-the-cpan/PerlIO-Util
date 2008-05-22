@@ -1,6 +1,6 @@
 #!perl
 
-require 5.008_000;
+require 5.008_001; # for utf8::is_utf8()
 
 use strict;
 use warnings;

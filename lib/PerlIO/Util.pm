@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -36,7 +36,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.13
+This document describes PerlIO::Util version 0.14
 
 =head1 SYNOPSIS
 
