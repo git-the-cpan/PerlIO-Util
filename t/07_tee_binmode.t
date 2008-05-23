@@ -89,14 +89,23 @@ ok binmode($tee, ':crlf'), 'binmode(crlf)';
 
 print $tee "\n";
 is slurp($file1), "foobar\n$CRLF", "binmode:crlf (1)";
-is $x,            "foobar\n$CRLF", "binmode:crlf (2)";
+
+SKIP:{
+	skip 'Win32', 1
+		if $^O eq 'Win32';
+	is $x,            "foobar\n$CRLF", "binmode:crlf (2)";
+}
 
 ok binmode($tee), 'binmode()';
 
 print $tee "\n";
 is slurp($file1), "foobar\n$CRLF\n", "binmode:raw (1)";
-is $x,            "foobar\n$CRLF\n", "binmode:raw (2)";
 
+SKIP:{
+	skip 'Win32', 1
+		if $^O eq 'Win32';
+	is $x,            "foobar\n$CRLF\n", "binmode:raw (2)";
+}
 close $tee;
 
 

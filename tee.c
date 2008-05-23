@@ -68,7 +68,7 @@ PerlIOTee_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 	p = mode;
 	while(*p){
 		if(*p == 'r' || *p == '+'){
-			Perl_croak(aTHX_ "Cannot tee for reading");
+			Perl_croak(aTHX_ "Cannot open:tee for reading");
 		}
 		p++;
 	}
@@ -131,12 +131,12 @@ parse_fname(pTHX_ SV* arg, const char** mode){
 			len--;
 		}
 		break;
-	
+
 	case '+':
 	case '<':
 	case '|':
-	case ':':
-		Perl_croak(aTHX_ "Unrecognized :tee mode (it must be '>' or '>>')");
+		Perl_croak(aTHX_ "Unacceptable open mode '%c' (it must be '>' or '>>')",
+			*pv);
 	default:
 		/* noop */;
 	}
@@ -163,13 +163,8 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 		}
 	}
 	else{
-		PerlIO_pair_t pair = { NULL, &PL_sv_undef };
-		PerlIO_list_t layers = { 1 /* refcnt */, 1 /* cur */,  1 /* len */, NULL /* array */ };
-		PerlIO_list_t* layers_ptr;
-		PerlIO_funcs* tab;
-		
-
-		layers.array = &pair;
+		PerlIO_list_t*  layers = PL_def_layerlist;
+		PERLIO_FUNCS_DECL(*tab) = NULL;
 
 		if(SvPOK(arg) && SvCUR(arg) > 2){
 			TeeArg(f) = parse_fname(aTHX_ arg, &mode);
@@ -178,25 +173,25 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 			TeeArg(f) = newSVsv(arg);
 		}
 
-		if( SvROK(TeeArg(f))
-			&& (tab = PerlIO_layer_from_ref(aTHX_ SvRV(TeeArg(f)))) ){
-			pair.funcs = tab;
-			layers_ptr = &layers;
+		if( SvROK(TeeArg(f)) ){
+			tab = PerlIO_layer_from_ref(aTHX_ SvRV(TeeArg(f)));
 		}
-		else{
-			layers_ptr = PL_def_layerlist;
-			tab = LayerFetch(layers_ptr, layers_ptr->cur-1);
+
+		if(!tab){
+			tab = LayerFetch(layers, layers->cur-1);
 		}
 
 		if(!mode){
 			mode = "w";
 		}
+		assert(tab);
+		assert(*mode == 'w' || *mode == 'a');
 
 		PerlIO_debug("PerlIOTee: %s => %s\n",
 			tab->name, SvPV_nolen(TeeArg(f)));
 
-		TeeOut(f) = tab->Open(aTHX_ tab, layers_ptr,
-			layers_ptr->cur-1, mode, -1, 0, 0, NULL, 1, &(TeeArg(f)));
+		TeeOut(f) = tab->Open(aTHX_ PERLIO_FUNCS_CAST(tab), layers,
+			layers->cur-1, mode, -1, 0, 0, NULL, 1, &(TeeArg(f)));
 
 		/*dump_perlio(aTHX_ TeeOut(f), 0);*/
 	}
@@ -204,8 +199,8 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 		return -1; /* failure */
 	}
 
-	PerlIOBase(f)->flags = PerlIOBase(TeeOut(f))->flags
-		= PerlIOBase(next)->flags;
+	PerlIOBase(f)->flags = PerlIOBase(next)->flags;
+	PerlIOBase(TeeOut(f))->flags |= PerlIOBase(f)->flags & PERLIO_F_UTF8;
 
 	return 0;
 }
@@ -222,15 +217,61 @@ PerlIOTee_popped(pTHX_ PerlIO* f){
 	return 0;
 }
 
+
+#ifdef PERLIOUTIL_WIN32_EMULATE /*  2008/05/22 */
+#define PERLIO_USING_CRLF
+
+static IV
+win32_crlf_binmode(pTHX_ PerlIO *f)
+{
+    if ((PerlIOBase(f)->flags & PERLIO_F_CRLF)) {
+	/* In text mode - flush any pending stuff and flip it */
+	PerlIOBase(f)->flags &= ~PERLIO_F_CRLF;
+#ifndef PERLIO_USING_CRLF
+	/* CRLF is unusual case - if this is just the :crlf layer pop it */
+	if (PerlIOBase(f)->tab == &PerlIO_crlf) {
+		PerlIO_pop(aTHX_ f);
+	}
+#endif
+    }
+    return 0;
+}
+#undef PERLIO_USING_CRLF
+#endif
+
 static IV
 PerlIOTee_binmode(pTHX_ PerlIO* f){
 	if(!PerlIOValid(f)){
 		return -1;
 	}
 
+#ifdef PERLIOUTIL_WIN32_EMULATE
+	((PerlIO_funcs*)&PerlIO_crlf)->Binmode = &win32_crlf_binmode;
+#endif
 	PerlIOBase_binmode(aTHX_ f); /* remove PERLIO_F_UTF8 */
 
-	PerlIO_binmode(aTHX_ PerlIONext(f), '>', O_BINARY, Nullch) ? 0 : -1;
+	PerlIO_binmode(aTHX_ PerlIONext(f), '>', O_BINARY, Nullch);
+
+	/* warn("Tee_binmode %s", PerlIOBase(f)->tab->name); */
+	/* there is a case where an unknown layer is supplied */
+	if( PerlIOBase(f)->tab != &PerlIO_tee ){
+		PerlIO* t = PerlIONext(f);
+		int n = 0;
+		int ok = 0;
+
+		while(PerlIOValid(t)){
+			if(PerlIOBase(t)->tab == &PerlIO_tee){
+				n++;
+				if(PerlIO_binmode(aTHX_ TeeOut(t), '>'/*not used*/,
+					O_BINARY, Nullch)){
+					ok++;
+				}
+			}
+
+			t = PerlIONext(t);
+		}
+		return n == ok ? 0 : -1;
+	}
 
 	return PerlIO_binmode(aTHX_ TeeOut(f), '>'/*not used*/,
 				O_BINARY, Nullch) ? 0 : -1;

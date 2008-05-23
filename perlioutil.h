@@ -26,4 +26,11 @@ PerlIOTee_teeout(pTHX_ const PerlIO* tee);
 void
 dump_perlio(pTHX_ PerlIO* f, int level);
 
+
+PERLIO_FUNCS_DECL(PerlIO_flock);
+PERLIO_FUNCS_DECL(PerlIO_creat);
+PERLIO_FUNCS_DECL(PerlIO_excl);
+PERLIO_FUNCS_DECL(PerlIO_tee);
+
+
 #endif /*PERLIO_UTIL_H*/

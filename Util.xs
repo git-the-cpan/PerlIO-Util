@@ -54,11 +54,6 @@ dump_perlio(pTHX_ PerlIO* f, int level){
 	}
 }
 
-extern PERLIO_FUNCS_DECL(PerlIO_flock);
-extern PERLIO_FUNCS_DECL(PerlIO_creat);
-extern PERLIO_FUNCS_DECL(PerlIO_excl);
-extern PERLIO_FUNCS_DECL(PerlIO_tee);
-
 MODULE = PerlIO::Util		PACKAGE = PerlIO::Util		
 
 PROTOTYPES: DISABLE
