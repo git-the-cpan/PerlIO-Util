@@ -80,14 +80,10 @@ static PerlIO*
 PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 		const char* mode, int fd, int imode, int perm,
 		PerlIO* f, int narg, SV** args, int flags){
-	PerlIO_funcs* tab = NULL;
-	char numeric_mode[5];
+	PerlIO_funcs* tab;
+	char numeric_mode[5]; /* [I#]? [wra]\+? [tb] */
 
 	PERL_UNUSED_ARG(self);
-
-	if(PerlIOValid(f)){ /* PerlIO_reopen() */
-		/* not yet implemented */
-	}
 
 	if(mode[0] != IoTYPE_NUMERIC){
 		assert( sizeof(numeric_mode) > strlen(mode) );
@@ -105,9 +101,7 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 	}
 
 	tab = LayerFetchSafe(layers, n - 1);
-	if(!tab){
-		tab = PerlIO_find_layer(aTHX_ STR_WITH_LEN("perlio"), 0);
-	}
+
 	if(!(tab && tab->Open)){
 		SETERRNO(EINVAL, LIB_INVARG);
 		return NULL;
@@ -117,7 +111,7 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 		tab->name, mode, imode, perm);
 // */
 
-	return (*tab->Open)(aTHX_ tab, layers, n - 1,  mode,
+	return tab->Open(aTHX_ tab, layers, n - 1,  mode,
 				fd, imode, perm, f, narg, args);
 }
 
@@ -143,10 +137,10 @@ PerlIOExcl_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 /* :flock */
 PERLIO_FUNCS_DECL(PerlIO_flock) = {
 	sizeof(PerlIO_funcs),
-	"flock", /* name */
+	"flock",
 	0, /* size */
 	PERLIO_K_DUMMY, /* kind */
-	PerlIOFlock_pushed, /* pushed */
+	PerlIOFlock_pushed,
 	NULL, /* popped */
 	NULL, /* open */
 	NULL, /* binmode */
@@ -175,12 +169,12 @@ PERLIO_FUNCS_DECL(PerlIO_flock) = {
 /* :creat */
 PERLIO_FUNCS_DECL(PerlIO_creat) = {
 	sizeof(PerlIO_funcs),
-	"creat", /* name */
+	"creat",
 	0, /* size */
 	PERLIO_K_DUMMY, /* kind */
-	useless_pushed, /* pushed */
+	useless_pushed,
 	NULL, /* popped */
-	PerlIOCreat_open, /* open */
+	PerlIOCreat_open,
 	NULL, /* binmode */
 	NULL, /* arg */
 	NULL, /* fileno */
@@ -207,12 +201,12 @@ PERLIO_FUNCS_DECL(PerlIO_creat) = {
 /* :excl */
 PERLIO_FUNCS_DECL(PerlIO_excl) = {
 	sizeof(PerlIO_funcs),
-	"excl", /* name */
+	"excl",
 	0, /* size */
 	PERLIO_K_DUMMY, /* kind */
-	useless_pushed, /* pushed */
+	useless_pushed,
 	NULL, /* popped */
-	PerlIOExcl_open, /* open */
+	PerlIOExcl_open,
 	NULL, /* binmode */
 	NULL, /* arg */
 	NULL, /* fileno */

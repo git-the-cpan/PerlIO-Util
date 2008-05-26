@@ -1,5 +1,10 @@
 Revision history for PerlIO-Util
 
+0.16 Sun May 25 15:44:42 2008
+	- internal cleanup
+	- fix some issues
+	- skip some test in 08_tee_binmode.t when :crlf layer is default
+
 0.15 Fri May 23 00:10:31 2008
 	- fix the problem of PerlIOTee_binmode() finally!
 		(but there are some limits on Win32 because of the perlio structure)

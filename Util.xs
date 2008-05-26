@@ -5,6 +5,7 @@
 #include "perlioutil.h"
 
 
+
 #define PutFlag(c) do{\
 		if(PerlIOBase(f)->flags & (PERLIO_F_##c)){\
 			printf(" %s", #c);\
@@ -24,7 +25,8 @@ dump_perlio(pTHX_ PerlIO* f, int level){
 		int i;
 		for(i = 0; i < level; i++) printf("\t");
 
-		printf(":%s (0x%x) ", PerlIOBase(f)->tab->name, (unsigned)f);
+		printf(":%s (%p) flags=0x%lx",
+			PerlIOBase(f)->tab->name, f, (unsigned long)PerlIOBase(f)->flags);
 		PutFlag(EOF);
 		PutFlag(CANWRITE);
 		PutFlag(CANREAD);
@@ -54,6 +56,7 @@ dump_perlio(pTHX_ PerlIO* f, int level){
 	}
 }
 
+
 MODULE = PerlIO::Util		PACKAGE = PerlIO::Util		
 
 PROTOTYPES: DISABLE
@@ -63,11 +66,12 @@ BOOT:
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_creat));
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_excl));
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_tee));
+	/*define_dir_layer();*/
 
 void
 known_layers(...)
 PREINIT:
-	PerlIO_list_t* layers = PL_known_layers;
+	const PerlIO_list_t* layers = PL_known_layers;
 	int i;
 PPCODE:
 	EXTEND(SP, layers->cur);
@@ -131,10 +135,8 @@ PPCODE:
 		XSRETURN_PV(poped_layer);
 	}
 
-
-
 void
-dump(f)
+_dump(f)
 	PerlIO* f
 CODE:
 	/* this function is only for debugging */

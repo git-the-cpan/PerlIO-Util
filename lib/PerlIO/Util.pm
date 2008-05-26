@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -14,14 +14,12 @@ sub open{
 		require Carp;
 		Carp::croak('Usage: PerlIO::Util->open($mode, @args)');
 	}
-
 	my $anonio;
 	unless(CORE::open $anonio, $_[1], @_[2 .. $#_]){
 		require Carp;
 		local $" = ', ';
 		Carp::croak("Cannot open(@_): $!");
 	}
-
 	return bless $anonio => 'IO::Handle';
 }
 
@@ -36,7 +34,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.15
+This document describes PerlIO::Util version 0.16
 
 =head1 SYNOPSIS
 
@@ -48,8 +46,8 @@ This document describes PerlIO::Util version 0.15
 
     open IN, "+<:creat :excl", ...; # with O_CREAT | O_EXCL
 
-    open OUT, ">:tee", $file, \*LOG;
-    print OUT "foo"; # print to both $file and *LOG
+    open OUT, ">:tee", $file, @others;
+    print OUT "foo"; # print to $file and @others
 
     # utility routines
 
@@ -130,11 +128,11 @@ filehandle. For example:
 	$fh->push_layer(tee => \$scalar); # via :scalar
 	$fh->push_layer(tee => \*OUT);    # shallow copy, not duplication
 
-You can also use C<:tee> with multiple arguments.
+You can also use C<open()> with multiple arguments.
 However, it is just a syntax sugar to call C<push_layer()>: One C<:tee>
-layer has a single extra filehandle, so arguments C<$x, $y, $z>, for example,
-provides a filehandle with one C<:perlio> layer and two C<:tee> layers that
-have a filehandle with C<:perlio> internally.
+layer has a single extra filehandle, so arguments C<$x, $y, $z> of C<open()>,
+for example, prepares a filehandle with one basic layer and two C<:tee>
+layers with a internal filehandle.
 
 	open my $tee, '>:tee', $x, $y, $z;
 	# the code above means:
@@ -147,8 +145,6 @@ have a filehandle with C<:perlio> internally.
 	$tee->pop_layer();  # "tee($z)" is popped
 	$tee->pop_layer();  # "tee($y)" is popped
 	# now $tee is a filehandle only to $x
-
-This layer is B<EXPERIMENTAL>.
 
 =head1 UTILITY METHODS
 

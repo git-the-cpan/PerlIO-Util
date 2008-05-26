@@ -1,6 +1,6 @@
 #!perl
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use Test::More tests => 59;
 
 use FindBin qw($Bin);

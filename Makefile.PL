@@ -1,6 +1,6 @@
 #!perl
 
-require 5.008_001; # for utf8::is_utf8()
+require 5.008_001; # for PerlIO::get_layers()
 
 use strict;
 use warnings;

@@ -14,3 +14,8 @@ PerlIO-Util/TODO
 
 	$in = PerlIO::Util->open('<:grep(pattern)', $file);
 
+
+* PerlIO::fse - Deals with File System Encodings
+
+	$io = PerlIO::Util->open('<:fse(cp932)', $cp932_encoded_filename);
+

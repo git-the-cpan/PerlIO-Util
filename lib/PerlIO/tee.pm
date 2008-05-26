@@ -7,8 +7,6 @@ PerlIO::tee - Multiplex output layer
 
 =head1 SYNOPSIS
 
-	# XXX: the tee layer is EXPERIMENTAL
-
 	open my $out, '>>:tee', $file, @sources;
 
 	$out->push_layer(tee => $file);

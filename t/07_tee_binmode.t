@@ -1,8 +1,8 @@
 #!perl
 
 use strict;
-use warnings;
-use Test::More tests => 40;
+use warnings FATAL => 'all';
+use Test::More tests => 42;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -10,6 +10,8 @@ use IO::Handle ();
 
 use PerlIO::Util;
 
+use constant USING_CRLF
+	=> scalar( grep{ $_ eq 'crlf' } STDOUT->get_layers() );
 
 my $file1 = File::Spec->join($Bin, 'util', '.tee1');
 my $file2 = File::Spec->join($Bin, 'util', '.tee2');
@@ -77,44 +79,49 @@ is $x,            "foobar\n$CRLF\n", "binmode:raw (2)";
 
 close $tee;
 
-ok open($tee, '>:tee', $file1, \$x), "open:tee file, scalar";
-$tee->autoflush(1);
-ok binmode($tee), 'binmode()';
-
-print $tee "foobar", "\n";
-is slurp($file1), "foobar\n", "binmode:raw (1)";
-is $x,            "foobar\n", "binmode:raw (2)";
-
-ok binmode($tee, ':crlf'), 'binmode(crlf)';
-
-print $tee "\n";
-is slurp($file1), "foobar\n$CRLF", "binmode:crlf (1)";
-
 SKIP:{
-	skip 'Win32', 1
-		if $^O eq 'Win32';
+	skip '":crlf" is default', 10 if USING_CRLF;
+
+	ok open($tee, '>:tee', $file1, \$x), "open:tee file, scalar";
+	$tee->autoflush(1);
+
+	ok binmode($tee), 'binmode()';
+
+	print $tee "foobar", "\n";
+	is slurp($file1), "foobar\n", "binmode:raw (1)";
+	is $x,            "foobar\n", "binmode:raw (2)";
+
+	ok binmode($tee, ':crlf'), 'binmode(crlf)';
+
+	print $tee "\n";
+	is slurp($file1), "foobar\n$CRLF", "binmode:crlf (1)";
 	is $x,            "foobar\n$CRLF", "binmode:crlf (2)";
-}
 
-ok binmode($tee), 'binmode()';
+	ok binmode($tee), 'binmode()';
 
-print $tee "\n";
-is slurp($file1), "foobar\n$CRLF\n", "binmode:raw (1)";
-
-SKIP:{
-	skip 'Win32', 1
-		if $^O eq 'Win32';
+	print $tee "\n";
+	is slurp($file1), "foobar\n$CRLF\n", "binmode:raw (1)";
 	is $x,            "foobar\n$CRLF\n", "binmode:raw (2)";
-}
-close $tee;
 
+	close $tee;
+}
 
 # binmode clears UTF8 mode
 open $tee, '>:tee :utf8', \($x, $y);
 
 ok scalar(grep{ $_ eq 'utf8' } $tee->get_layers()), ':tee with :utf8';
 
+eval{
+	print $tee "\x{99f1}\x{99dd}";
+};
+is $@, '', 'output utf8 string';
+
 ok binmode($tee), 'binmode()';
+
+eval{
+	print $tee "\x{99f1}\x{99dd}";
+};
+isnt $@, '', 'after binmode: warns "Wide character in print"';
 
 ok!scalar(grep{ $_ eq 'utf8' } $tee->get_layers()), 'binmode:raw';
 

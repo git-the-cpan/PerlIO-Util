@@ -27,10 +27,18 @@ void
 dump_perlio(pTHX_ PerlIO* f, int level);
 
 
-PERLIO_FUNCS_DECL(PerlIO_flock);
-PERLIO_FUNCS_DECL(PerlIO_creat);
-PERLIO_FUNCS_DECL(PerlIO_excl);
-PERLIO_FUNCS_DECL(PerlIO_tee);
+extern PERLIO_FUNCS_DECL(PerlIO_flock);
+extern PERLIO_FUNCS_DECL(PerlIO_creat);
+extern PERLIO_FUNCS_DECL(PerlIO_excl);
+extern PERLIO_FUNCS_DECL(PerlIO_tee);
+
+
+#if defined(Direntry_t) && defined(HAS_READDIR)
+extern PERLIO_FUNCS_DECL(PerlIO_dir);
+#define define_dir_layer() PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_dir))
+#else
+#define define_dir_layer() NOOP
+#endif
 
 
 #endif /*PERLIO_UTIL_H*/
