@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.16';
+our $VERSION = '0.20';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -34,7 +34,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.16
+This document describes PerlIO::Util version 0.20
 
 =head1 SYNOPSIS
 
@@ -146,6 +146,28 @@ layers with a internal filehandle.
 	$tee->pop_layer();  # "tee($y)" is popped
 	# now $tee is a filehandle only to $x
 
+=head1 :dir
+
+The C<:dir> layer provides an interface to directories.
+
+There is an important difference from Perl's C<readdir()>. This layer
+B<appends a newline code>, C<\n>, to the end of the name, because
+C<readline()> requires input separators. Call C<chomp()> if necesary.
+
+	open my $dir, '<:dir', '.';
+	my @dirs = <$dir>;    # readdir() but added "\n" at the end of the name
+	chomp @dirs;          # if necessary
+
+You can call C<tell()> and C<seek()>, although there are some limits.
+C<seek()> refuses SEEK_CUR and SEEK_END with a non-zero potition value.
+And C<tell()> returns an integer that refuses any arithmetic operations.
+
+	my $pos = tell($dir); # telldir()
+	seek $dir, $pos, 0;   # seekdir()
+	seek $dir, 0, 0;      # rewinddir()
+
+	close $dir;           # closedir()
+
 =head1 UTILITY METHODS
 
 =head2 PerlIO::Util-E<gt>open($mode, @args)
@@ -182,7 +204,7 @@ This method returns the name of the poped layer.
 
 =head1 DEPENDENCIES
 
-Perl 5.8.0 or later.
+Perl 5.8.1 or later, and a C compiler.
 
 =head1 BUGS
 
@@ -193,6 +215,8 @@ E<lt>gfuji (at) cpan.orgE<gt>, or through the web interface at
 L<http://rt.cpan.org/>.
 
 =head1 SEE ALSO
+
+L<PerlIO::flock>, L<PerlIO::creat>, L<PerlIO::excl>, L<PerlIO::tee>, L<PerlIO::dir>
 
 L<perlfunc/flock> for C<:flock>.
 

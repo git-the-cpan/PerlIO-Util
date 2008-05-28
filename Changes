@@ -1,5 +1,8 @@
 Revision history for PerlIO-Util
 
+0.20 Wed May 28 14:00:39 2008
+	- add PerlIO::dir to read directories
+
 0.16 Sun May 25 15:44:42 2008
 	- internal cleanup
 	- fix some issues
