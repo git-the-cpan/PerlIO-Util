@@ -11,7 +11,7 @@ BEGIN{
 		exit;
 	}
 	else{
-		plan tests => 42;
+		plan tests => 40;
 	}
 }
 use IO::Dir;
@@ -70,15 +70,6 @@ is $dir->ungetc(ord '?'), ord('?'), 'ungetc()';
 is getc($dir), '?', 'getc()';
 is getc($dir), substr($first, 0, 1), 'getc()';
 
-
-ok close($dir), 'close:dir';
-
-open $dir, '<:dir:encoding(CP932)', File::Spec->join($Bin, 'util');
-
-is( (grep{ /^CP932/ } <$dir>)[0],
-	# "CP932でエンコードされたファイル"
-	"CP932\x{3067}\x{30a8}\x{30f3}\x{30b3}\x{30fc}\x{30c9}\x{3055}\x{308c}\x{305f}\x{30d5}\x{30a1}\x{30a4}\x{30eb}\n",
-	':dir with :encoding');
 
 ok close($dir), 'close:dir';
 

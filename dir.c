@@ -43,29 +43,19 @@ PerlIODir_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 	PERL_UNUSED_ARG(perm);
 	PERL_UNUSED_ARG(narg);
 
+	if(!imode){
+		imode = PerlIOUnix_oflags(mode);
+	}
+	if( imode & (O_WRONLY | O_RDWR) ){
+		SETERRNO(EPERM, RMS_PRV);
+		return NULL;
+	}
 	if(PerlIOValid(f)){ /* reopen */
 		PerlIO_close(f);
 	}
 	else{
 		f = PerlIO_allocate(aTHX);
 	}
-
-	switch(*mode){
-		case 'r':
-			if(mode[1] == '+'){
-				goto permission_denied;
-			}
-			NOOP; /* OK */
-			break;
-		case IoTYPE_NUMERIC:
-			SETERRNO(EINVAL, LIB_INVARG);
-			return NULL;
-		default:
-			permission_denied:
-			SETERRNO(EPERM, RMS_PRV);
-			return NULL;
-	}
-
 
 	return PerlIO_push(aTHX_ f, self, mode, args[0]);
 }
@@ -93,7 +83,6 @@ PerlIODir_popped(pTHX_ PerlIO* f){
 #else
 		if(PerlDir_close(Dirp(f)) < 0){
 			Dirp(f) = NULL;
-			SETERRNO(EBADF,RMS_IFI);
 			return -1;
 		}
 #endif
@@ -150,12 +139,7 @@ static STDCHAR *
 PerlIODir_get_ptr(pTHX_ PerlIO * f){
 	PERL_UNUSED_CONTEXT;
 
-	if(DirBufCur(f) > 0){
-		return &(DirBuf(f)[0]) + DirBufOffset(f);
-	}
-	else{
-		return NULL;
-	}
+	return &(DirBuf(f)[0]) + DirBufOffset(f);
 }
 
 static SSize_t
@@ -183,28 +167,35 @@ PerlIODir_set_ptrcnt(pTHX_ PerlIO * f, STDCHAR * ptr, SSize_t cnt){
 
 static IV
 PerlIODir_seek(pTHX_ PerlIO* f, Off_t offset, int whence){
-#if SEEK_SET == 0
-#define IsSeekSet(w) (w == SEEK_SET)
-#else
-#define IsSeekSet(w) (w == SEEK_SET || w == 0)
-#endif
+	switch(whence){
+	case SEEK_SET:
+		PerlDir_seek(Dirp(f), (long)offset);
+		break;
 
-	if(IsSeekSet(whence)){
-		PerlDir_seek(Dirp(f), offset);
-		DirBufCur(f)    = 0;
-		DirBufOffset(f) = 0;
-	}
-	else if(offset != 0){
-		SETERRNO(EINVAL, LIB_INVARG);
-		return -1;
-	}
-	else if(whence == SEEK_END){ /* to EOF */
-		while(PerlDir_read(Dirp(f))){
+	case SEEK_CUR:
+		if(offset != 0){
+			goto einval;
+		}
+		PerlIOBase(f)->flags &= ~PERLIO_F_EOF;
+		return 0;
+
+	case SEEK_END:
+		if(offset != 0){
+			goto einval;
+		}
+		while(PerlDir_read(Dirp(f)) != NULL){
 			NOOP;
 		}
-		DirBufCur(f)    = 0;
-		DirBufOffset(f) = 0;
+		break;
+
+	default:
+		einval: SETERRNO(EINVAL, LIB_INVARG);
+		return -1;
 	}
+
+	DirBufCur(f)    = 0;
+	DirBufOffset(f) = 0;
+
 	PerlIOBase(f)->flags &= ~(PERLIO_F_EOF | PERLIO_F_RDBUF);
 
 	return 0;
@@ -219,7 +210,7 @@ PERLIO_FUNCS_DECL(PerlIO_dir) = {
     sizeof(PerlIO_funcs),
     "dir",
     sizeof(PerlIODir),
-    PERLIO_K_RAW | PERLIO_K_BUFFERED,
+    PERLIO_K_BUFFERED | PERLIO_K_RAW,
     PerlIODir_pushed,
     PerlIODir_popped,
     PerlIODir_open,

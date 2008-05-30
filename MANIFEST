@@ -28,7 +28,6 @@ t/07_tee_binmode.t
 t/10_dir.t
 t/99_pod.t
 t/util/.lock
-t/util/CP932でエンコードされたファイル
 t/util/locktest.pl
 tee.c
 TODO
