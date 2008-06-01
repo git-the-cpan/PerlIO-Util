@@ -198,7 +198,8 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 	}
 
 	PerlIOBase(f)->flags = PerlIOBase(next)->flags;
-	PerlIOBase(TeeOut(f))->flags |= PerlIOBase(f)->flags & PERLIO_F_UTF8;
+
+	IOLflag_on(TeeOut(f), PerlIOBase(f)->flags & PERLIO_F_UTF8);
 
 	return 0;
 }

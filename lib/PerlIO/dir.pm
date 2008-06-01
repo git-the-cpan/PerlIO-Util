@@ -13,8 +13,7 @@ PerlIO::dir - Reads directories
 	my @dirs = <$dp>; # added "\n" at the end of the name
 	chomp @dirs; # if necessary
 
-	seek $dp, 0, 0;     # rewind
-	my $pos = tell $dp;
+	seek $dp, 0, 0;     # rewinddir
 
 =head1 SEE ALSO
 

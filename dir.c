@@ -7,9 +7,9 @@
 
 #define Dirp(f)   (PerlIOSelf(f, PerlIODir)->dirp)
 
-#define DirBuf(f) (PerlIOSelf(f, PerlIODir)->buf)
-#define DirBufOffset(f) (PerlIOSelf(f, PerlIODir)->offset)
-#define DirBufCur(f) (PerlIOSelf(f, PerlIODir)->cur)
+#define DirBuf(f)    (PerlIOSelf(f, PerlIODir)->buf)
+#define DirBufPtr(f) (PerlIOSelf(f, PerlIODir)->ptr)
+#define DirBufEnd(f) (PerlIOSelf(f, PerlIODir)->end)
 
 #if defined(FILENAME_MAX)
 #	define DIR_BUFSIZ (FILENAME_MAX+1)
@@ -19,7 +19,7 @@
 /*
 	BUF: foobar\n@@@@@@@@@@@@@
 	      ^      ^            ^
-	   OFFSET   CUR        BUFSIZ
+	     ptr    end        BUFSIZ
 */
 typedef struct{
 	struct _PerlIO base;
@@ -27,9 +27,8 @@ typedef struct{
 	DIR* dirp;
 
 	STDCHAR buf[DIR_BUFSIZ];
-	STRLEN cur;
-
-	STRLEN offset;
+	STDCHAR* ptr;
+	STDCHAR* end;
 } PerlIODir;
 
 static PerlIO*
@@ -68,14 +67,14 @@ PerlIODir_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 		return -1;
 	}
 
-	DirBufCur(f)    = 0;
-	DirBufOffset(f) = 0;
+	DirBufPtr(f) = DirBufEnd(f) = DirBuf(f);
 
 	return PerlIOBase_pushed(aTHX_ f, mode, arg, tab);
 }
 
 static IV
 PerlIODir_popped(pTHX_ PerlIO* f){
+	PerlIO_debug("PerlIODir_popped: closedir(%p)\n", Dirp(f));
 
 	if(Dirp(f)){
 #ifdef VOID_CLOSEDIR
@@ -99,7 +98,6 @@ PerlIODir_fill(pTHX_ PerlIO* f){
 #endif
 	const Direntry_t* de = PerlDir_read(Dirp(f));
 
-	DirBufOffset(f) = 0;
 	if(de){
 #ifdef DIRNAMLEN
 		STRLEN len = de->d_namlen;
@@ -114,16 +112,18 @@ PerlIODir_fill(pTHX_ PerlIO* f){
 		/* add "\n" */
 		DirBuf(f)[len] = '\n';
 
-		DirBufCur(f) = len + 1;
+		DirBufPtr(f) = DirBuf(f);
+		DirBufEnd(f) = DirBuf(f) + (len+1);
 
-		PerlIOBase(f)->flags |= PERLIO_F_RDBUF;
+		IOLflag_on(f, PERLIO_F_RDBUF);
 
 		return 0;
 	}
 	else{
-		PerlIOBase(f)->flags &= ~PERLIO_F_RDBUF;
-		PerlIOBase(f)->flags |=  PERLIO_F_EOF;
-		DirBufCur(f) = 0;
+		IOLflag_off(f, PERLIO_F_RDBUF);
+		IOLflag_on(f,  PERLIO_F_EOF);
+
+		DirBufPtr(f) = DirBufEnd(f) = DirBuf(f);
 		return -1;
 	}
 }
@@ -139,14 +139,14 @@ static STDCHAR *
 PerlIODir_get_ptr(pTHX_ PerlIO * f){
 	PERL_UNUSED_CONTEXT;
 
-	return &(DirBuf(f)[0]) + DirBufOffset(f);
+	return DirBufPtr(f);
 }
 
 static SSize_t
 PerlIODir_get_cnt(pTHX_ PerlIO * f){
 	PERL_UNUSED_CONTEXT;
 
-	return DirBufCur(f) - DirBufOffset(f);
+	return DirBufEnd(f) - DirBufPtr(f);
 }
 
 static Size_t
@@ -154,17 +154,17 @@ PerlIODir_bufsiz(pTHX_ PerlIO * f){
 	PERL_UNUSED_CONTEXT;
 	PERL_UNUSED_ARG(f);
 
-	return DIR_BUFSIZ;
+	return DirBufEnd(f) - DirBuf(f);
 }
 
 static void
 PerlIODir_set_ptrcnt(pTHX_ PerlIO * f, STDCHAR * ptr, SSize_t cnt){
 	PERL_UNUSED_CONTEXT;
-	PERL_UNUSED_ARG(ptr);
+	PERL_UNUSED_ARG(cnt);
 
-	DirBufOffset(f) = DirBufCur(f) - cnt;
+	DirBufPtr(f) = ptr;
 }
-
+#if 0
 static IV
 PerlIODir_seek(pTHX_ PerlIO* f, Off_t offset, int whence){
 	switch(whence){
@@ -176,7 +176,7 @@ PerlIODir_seek(pTHX_ PerlIO* f, Off_t offset, int whence){
 		if(offset != 0){
 			goto einval;
 		}
-		PerlIOBase(f)->flags &= ~PERLIO_F_EOF;
+		IOLflag(f, PERLIO_F_EOF);
 		return 0;
 
 	case SEEK_END:
@@ -193,11 +193,9 @@ PerlIODir_seek(pTHX_ PerlIO* f, Off_t offset, int whence){
 		return -1;
 	}
 
-	DirBufCur(f)    = 0;
-	DirBufOffset(f) = 0;
+	DirBufPtr(f) = DirBufEnd(f) = DirBuf(f);
 
-	PerlIOBase(f)->flags &= ~(PERLIO_F_EOF | PERLIO_F_RDBUF);
-
+	IOLflag_off(f, PERLIO_F_EOF | PERLIO_F_RDBUF);
 	return 0;
 }
 
@@ -206,11 +204,35 @@ PerlIODir_tell(pTHX_ PerlIO* f){
 	return PerlDir_tell( Dirp(f) );
 }
 
+#else
+
+
+static IV
+PerlIODir_seek(pTHX_ PerlIO* f, Off_t offset, int whence){
+	switch(whence){
+	case SEEK_SET:
+		if(offset == 0){
+			PerlDir_rewind(Dirp(f));
+			return 0;
+		}
+	case SEEK_CUR:
+	case SEEK_END:
+	default:
+		SETERRNO(EINVAL, LIB_INVARG);
+		return -1;
+	}
+}
+
+
+#define PerlIODir_tell NULL
+#endif
+
+
 PERLIO_FUNCS_DECL(PerlIO_dir) = {
     sizeof(PerlIO_funcs),
     "dir",
     sizeof(PerlIODir),
-    PERLIO_K_BUFFERED | PERLIO_K_RAW,
+    PERLIO_K_BUFFERED | PERLIO_K_RAW | PERLIO_K_DESTRUCT,
     PerlIODir_pushed,
     PerlIODir_popped,
     PerlIODir_open,

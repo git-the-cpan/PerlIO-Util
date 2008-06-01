@@ -1,35 +1,23 @@
 require PerlIO::Util;
 __END__
-
 =head1 NAME
 
-PerlIO::tee - Multiplex output layer
+PerlIO::reverse - Reads lines backward
 
 =head1 SYNOPSIS
 
-	open my $out, '>>:tee', $file, @sources;
-
-	$out->push_layer(tee => $file);
-	$out->push_layer(tee => ">> $file");
-	$out->push_layer(tee => \$scalar);
-	$out->push_layer(tee => \*FILEHANDLE);
+	open my $rev, '<:reverse', $file;
+	print while <$rev>; # print contents reversely
 
 =head1 EXAMPLE
 
-Here is an minimal implementation of C<tee(1)>.
+Here is an minimal implementation of C<tac(1)>.
 
 	#!/usr/bin/perl -w
 	# Usage: $0 files...
-	use strict;
-	use PerlIO::Util;
-
-	STDOUT->push_layer(tee => $_) for @ARGV;
-
-	while(read STDIN, $_, 2**12){
-		print;
-	}
+	use open IN => ':reverse';
+	print while <>;
 	__END__
-
 
 =head1 SEE ALSO
 

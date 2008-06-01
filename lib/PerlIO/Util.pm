@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.21';
+our $VERSION = '0.30';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -34,7 +34,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.21
+This document describes PerlIO::Util version 0.30
 
 =head1 SYNOPSIS
 
@@ -158,15 +158,15 @@ C<readline()> requires input separators. Call C<chomp()> if necesary.
 	my @dirs = <$dir>;    # readdir() but added "\n" at the end of the name
 	chomp @dirs;          # if necessary
 
-You can call C<tell()> and C<seek()>, although there are some limits.
-C<seek()> refuses SEEK_CUR and SEEK_END with a non-zero potition value.
-And C<tell()> returns an integer that refuses any arithmetic operations.
+You can use C<seek($dir, 0, 0)> only for C<rewinddir()>. 
 
-	my $pos = tell($dir); # telldir()
-	seek $dir, $pos, 0;   # seekdir()
 	seek $dir, 0, 0;      # rewinddir()
 
-	close $dir;           # closedir()
+=head1 :reverse
+
+The C<:reverse> layer reads lines reversely like C<tac(1)>.
+
+Currently it is insufficient.
 
 =head1 UTILITY METHODS
 

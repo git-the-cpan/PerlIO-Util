@@ -11,7 +11,7 @@ BEGIN{
 		exit;
 	}
 	else{
-		plan tests => 40;
+		plan tests => 33;
 	}
 }
 use IO::Dir;
@@ -31,32 +31,11 @@ ok eof($dir), "eof:dir";
 seek $dir, 0, 0; # rewind
 ok !eof($dir), 'eof:dir after seek:dir (cleared)';
 
-my $first_pos = tell $dir;
-ok defined($first_pos), 'tell:dir';
 
 my $first  = <$dir>;
 is $first, $dirs[0], 'seek:dir (rewind)';
 
-my $second_pos = tell $dir;
-ok defined($second_pos), 'tell:dir';
-my $second = <$dir>;
-
-seek $dir, $second_pos, 0;
-is scalar(<$dir>), $second, 'seek:dir';
-
-seek $dir, $first_pos, 0;
-is scalar(<$dir>), $first, 'seek:dir';
-
-() = <$dir>; # to EOF
-my $end_pos = tell $dir;
-seek $dir, 0, SEEK_CUR;
-is tell($dir), $end_pos, 'SEEK_CUR';
-seek $dir, 0, SEEK_SET;
-is tell($dir), 0, 'SEEK_SET';
-seek $dir, 0, SEEK_END;
-is tell($dir), $end_pos, 'SEEK_END';
-
-seek $dir, 0, 0;
+seek $dir, 0, 0; # rewind
 
 is getc($dir), substr($first, 0, 1), 'getc()';
 is $dir->ungetc(ord '*'), ord('*'), 'ungetc()';
@@ -65,7 +44,7 @@ is getc($dir), substr($first, 1, 1), 'getc()';
 is $dir->ungetc(ord '/'), ord('/'), 'ungetc()';
 is getc($dir), '/', 'getc() again';
 
-seek $dir, 0, 0;
+seek $dir, 0, 0; # rewind
 is $dir->ungetc(ord '?'), ord('?'), 'ungetc()';
 is getc($dir), '?', 'getc()';
 is getc($dir), substr($first, 0, 1), 'getc()';
@@ -84,9 +63,9 @@ binmode $dir;
 ok !utf8::is_utf8(scalar <$dir>), 'without :utf8';
 
 ok open($dir, '<:dir', '.'), 'open:dir';
-ok  seek($dir, $second_pos, SEEK_SET), 'SEEK_SET (OK)';
-ok !seek($dir, $second_pos, SEEK_CUR), 'SEEK_CUR (NG)';
-ok !seek($dir, $second_pos, SEEK_END), 'SEEK_END (NG)';
+ok !seek($dir, 1, SEEK_SET), 'SEEK_SET (NK)';
+ok !seek($dir, 1, SEEK_CUR), 'SEEK_CUR (NG)';
+ok !seek($dir, 1, SEEK_END), 'SEEK_END (NG)';
 
 
 $! = 0;

@@ -20,6 +20,11 @@
 
 #include "ppport.h"
 
+#define IOLflag(f, flag)     (PerlIOBase((f))->flags & (flag))
+#define IOLflag_on(f, flag)  (PerlIOBase((f))->flags |= (flag))
+#define IOLflag_off(f, flag) (PerlIOBase((f))->flags &= ~(flag));
+
+
 PerlIO*
 PerlIOTee_teeout(pTHX_ const PerlIO* tee);
 

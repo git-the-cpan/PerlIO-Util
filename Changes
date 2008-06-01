@@ -1,5 +1,11 @@
 Revision history for PerlIO-Util
 
+
+0.30 Sun Jun  1 09:38:53 2008
+	- add PerlIO::reverse to read lines backward
+	- remove PerlIODir_seek() except for seek(f, 0, 0) (temporarily)
+	- remove PerlIODir_tell() (temporarily)
+
 0.21 Fri May 30 09:31:30 2008
 	- fix PerlIODir_seek() to typecast the pos argument
 	- rewrite PerlIODir_seek() and PerlIODir_open() to be simple

@@ -67,7 +67,7 @@ BOOT:
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_excl));
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_tee));
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_dir));
-	/*PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_reverse));*/
+	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_reverse));
 
 void
 known_layers(...)

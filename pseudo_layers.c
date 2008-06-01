@@ -1,7 +1,7 @@
 /*
-	PerlIO::flock - open with flock()
-	PerlIO::creat - open with O_CREAT
-	PerlIO::excl  - open with O_EXCL
+	:flock - open with flock()
+	:creat - open with O_CREAT
+	:excl  - open with O_EXCL
 
 */
 
@@ -21,7 +21,7 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 
 	assert(PerlIOValid(fp));
 
-	lock_mode = (*fp)->flags & PERLIO_F_CANWRITE ? LOCK_EX : LOCK_SH;
+	lock_mode = IOLflag(fp, PERLIO_F_CANWRITE) ? LOCK_EX : LOCK_SH;
 
 	if(SvOK(arg)){
 		const char* blocking = SvPV_nolen_const(arg);
@@ -41,7 +41,7 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 	}
 
 	fd  = PerlIO_fileno(fp);
-	if(fd == -1 && PerlIOBase(fp)->flags & PERLIO_F_OPEN){ /* maybe the scalar layer? */
+	if(fd == -1 && IOLflag(fp, PERLIO_F_OPEN)){ /* maybe the scalar layer */
 		return 0; /* success */
 	}
 
