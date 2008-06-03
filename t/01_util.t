@@ -71,11 +71,7 @@ eval{
 
 like $@, qr/Invalid filehandle/, 'push_layer(): Invalid filehandle';
 
-eval{
-	anonio()->pop_layer();
-};
-
-like $@, qr/Invalid filehandle/, 'pop_layer(): Invalid filehandle';
+ok !(anonio()->pop_layer()), 'pop_layer(): returns false';
 
 eval{
 	PerlIO::Util->open('file');

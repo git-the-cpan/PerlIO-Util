@@ -240,7 +240,7 @@ PERLIO_FUNCS_DECL(PerlIO_dir) = {
     NULL, /* getarg */
     NULL, /* fileno */
     NULL, /* dup */
-    PerlIOBase_read,
+    NULL, /* read */
     NULL, /* unread */
     NULL, /* write */
     PerlIODir_seek,

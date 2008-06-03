@@ -35,6 +35,5 @@ t/99_pod.t
 t/util/.lock
 t/util/locktest.pl
 tee.c
-TODO
 Util.xs
 META.yml                                 Module meta-data (added by MakeMaker)

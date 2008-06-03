@@ -121,19 +121,16 @@ void
 pop_layer(filehandle)
 	PerlIO* filehandle
 PREINIT:
-	const char* poped_layer = Nullch;
+	const char* popped_layer = Nullch;
 PPCODE:
-	if(PerlIOValid(filehandle)){
-		poped_layer = (*filehandle)->tab->name;
+	if(!PerlIOValid(filehandle)) XSRETURN_EMPTY;
+	popped_layer = PerlIOBase(filehandle)->tab->name;
 
-		PerlIO_flush(filehandle);
-		PerlIO_pop(aTHX_ filehandle);
-	}
-	else{
-		Perl_croak(aTHX_ "Invalid filehandle");
-	}
+	PerlIO_flush(filehandle);
+	PerlIO_pop(aTHX_ filehandle);
+
 	if(GIMME_V != G_VOID){
-		XSRETURN_PV(poped_layer);
+		XSRETURN_PV(popped_layer);
 	}
 
 void

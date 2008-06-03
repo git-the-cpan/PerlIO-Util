@@ -19,12 +19,15 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 	PERL_UNUSED_ARG(mode);
 	PERL_UNUSED_ARG(tab);
 
-	assert(PerlIOValid(fp));
+	if(!PerlIOValid(fp)){
+		SETERRNO(EBADF, SS_IVCHAN);
+		return -1;
+	}
 
 	lock_mode = IOLflag(fp, PERLIO_F_CANWRITE) ? LOCK_EX : LOCK_SH;
 
 	if(SvOK(arg)){
-		const char* blocking = SvPV_nolen_const(arg);
+		const char* blocking = SvPV_nolen(arg);
 
 		if(strEQ(blocking, "blocking")){
 			/* noop */
@@ -41,7 +44,7 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 	}
 
 	fd  = PerlIO_fileno(fp);
-	if(fd == -1 && IOLflag(fp, PERLIO_F_OPEN)){ /* maybe the scalar layer */
+	if(fd == -1){ /* :scalar, :dir, etc. */
 		return 0; /* success */
 	}
 
@@ -81,7 +84,7 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 		const char* mode, int fd, int imode, int perm,
 		PerlIO* f, int narg, SV** args, int flags){
 	PerlIO_funcs* tab;
-	char numeric_mode[5]; /* [I#]? [wra]\+? [tb] */
+	char numeric_mode[5]; /* [I#]? [wra]\+? [tb] \0 */
 
 	PERL_UNUSED_ARG(self);
 

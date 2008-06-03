@@ -1,5 +1,16 @@
 Revision history for PerlIO-Util
 
+TODO:
+* PerlIO::grep - Reads lines matching a pattern
+* PerlIO::fse - Deals with File System Encodings
+
+
+0.31 Mon Jun  2 22:37:04 2008
+	- :reverse calls binmode() internally when pushed (for CRLF convertion)
+	- remove errno tests in t/10_dir.t
+	- remove ungetc() tests (because it might not tested well)
+	- now pop_layer() doesn't die when invaid filehandles is supplied
+	- fix possible segv on applying :flock to invalid filehandles
 
 0.30 Sun Jun  1 09:38:53 2008
 	- add PerlIO::reverse to read lines backward

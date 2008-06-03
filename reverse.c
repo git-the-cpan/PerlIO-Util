@@ -5,6 +5,11 @@
 
 #define IOR(f) (PerlIOSelf(f, PerlIOReverse))
 
+#undef BUFSIZ
+
+#define BUFSIZ 2048
+#define SEGSV_BUFSIZ 512
+#define BUFSV_BUFSIZ (BUFSIZ+SEGSV_BUFSIZ)
 
 enum iorev_state{
 	first_reading,
@@ -44,14 +49,19 @@ PerlIOReverse_pushed(pTHX_ PerlIO *f, const char *mode, SV *arg, PerlIO_funcs *t
 		return -1;
 	}
 
+	if(!PerlIO_binmode(aTHX_ nx, '<', O_BINARY, Nullch)){
+		SETERRNO(EINVAL, LIB_INVARG);
+		return -1;
+	}
+
 	if(PerlIO_tell(nx) == 0){
 		if(PerlIO_seek(nx, (Off_t)0, SEEK_END) < 0){
 			return -1;
 		}
 	}
 	ior = IOR(f);
-	ior->segsv = newSV(BUFSIZ / 2);
-	ior->bufsv = newSV(BUFSIZ + SvLEN(ior->segsv));
+	ior->segsv = newSV(SEGSV_BUFSIZ);
+	ior->bufsv = newSV(BUFSV_BUFSIZ);
 	ior->state = first_reading;
 
 	assert( ior->bufsv );

@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 20;
+use Test::More tests => 22;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -83,3 +83,12 @@ open my $s, '>', \my $x;
 $! = 0;
 ok binmode($s, ':flock'), 'flock to scalar handle is noop';
 is $!, '', '... no error';
+
+
+# invalid filehandle
+1 while $s->pop_layer();
+eval{
+	$s->push_layer('flock');
+};
+ok $@, ':flock to invalid filehandle ';
+ok $!{EBADF}, '... bad file discriptor';

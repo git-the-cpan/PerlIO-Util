@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -34,7 +34,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.30
+This document describes PerlIO::Util version 0.31
 
 =head1 SYNOPSIS
 
@@ -164,9 +164,14 @@ You can use C<seek($dir, 0, 0)> only for C<rewinddir()>.
 
 =head1 :reverse
 
-The C<:reverse> layer reads lines reversely like C<tac(1)>.
+The C<:reverse> layer reads lines backward like C<tac(1)>.
 
-Currently it is insufficient.
+	open my $rin, '<:reverse', $file;
+	while(<$rin>){
+		# processing lines reversely
+	}
+
+Currently C<tell()> and C<seek()> are not implemented.
 
 =head1 UTILITY METHODS
 

@@ -12,6 +12,8 @@ SYNOPSIS
 	# to multiplex output
 	STDERR->push_layer(tee => ">> $err_log");
 
+	# to read lines backward
+	my $rin = PerlIO::Util->open('<:reverse', $file);
 
 INSTALLATION
 
@@ -29,8 +31,7 @@ DEPENDENCIES
 
 COPYRIGHT AND LICENCE
 
-	Copyright (C) 2008, Goro Fuji <gfuji (at) cpan.org>, Some rights
-	reversed.
+	Copyright (C) 2008, Goro Fuji <gfuji (at) cpan.org>, Some rights reversed.
 
 	This library is free software; you can redistribute it and/or modify
 	it under the same terms as Perl itself.
