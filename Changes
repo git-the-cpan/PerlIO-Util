@@ -3,7 +3,10 @@ Revision history for PerlIO-Util
 TODO:
 * PerlIO::grep - Reads lines matching a pattern
 * PerlIO::fse - Deals with File System Encodings
+* $fh->insert_layer(0, $layer => $arg)
 
+0.32 Tue Jun  3 22:41:55 2008
+	- change some tests for CRLF platforms (temporarily)
 
 0.31 Mon Jun  2 22:37:04 2008
 	- :reverse calls binmode() internally when pushed (for CRLF convertion)

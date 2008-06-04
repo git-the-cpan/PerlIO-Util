@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 22;
+use Test::More tests => 21;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -90,5 +90,4 @@ is $!, '', '... no error';
 eval{
 	$s->push_layer('flock');
 };
-ok $@, ':flock to invalid filehandle ';
-ok $!{EBADF}, '... bad file discriptor';
+ok $@, ":flock to invalid filehandle (\$!='$!')";

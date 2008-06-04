@@ -50,6 +50,8 @@ sub make_files{
 	my $cts = [];
 	my $f1 = File::Spec->catfile($Bin, 'util', 'revlongline');
 	open my $o, '>', $f1;
+	binmode $o;
+
 	foreach my $s('x' .. 'z'){
 		my $c = $s x (BUFSIZ+100) . "\n";
 		print $o $c;
@@ -61,6 +63,7 @@ sub make_files{
 	$cts = [];
 	my $f2 = File::Spec->catfile($Bin, 'util', 'revsmall');
 	open $o, '>', $f2;
+	binmode $o;
 	foreach my $s('x' .. 'z'){
 		my $c = $s x (10) . "\n";
 		print $o $c;
@@ -72,6 +75,7 @@ sub make_files{
 	$cts = [];
 	my $f3 = File::Spec->catfile($Bin, 'util', 'revnormal');
 	open $o, '>', $f3;
+	binmode $o;
 	foreach my $s(1000 .. 1500){
 		my $c = $s . "\n";
 		print $o $c;
@@ -83,13 +87,14 @@ sub make_files{
 	$cts = [];
 	my $f4 = File::Spec->catfile($Bin, 'util', 'revnotendnewline');
 	open $o, '>', $f4;
+	binmode $o;
 	print $o "foo\nbar";
 	@$cts = ("bar\n", "foo");
 	$f{nenl}{file} = $f4;
 	$f{nenl}{contents} = $cts;
 
 	eval q{
-		END{
+		sub END{
 			ok unlink($f1), '(cleanup)';
 			ok unlink($f2), '(cleanup)';
 			ok unlink($f3), '(cleanup)';
