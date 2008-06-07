@@ -11,7 +11,7 @@
 
 #define LayerFetch(layer, n) ((layer)->array[n].funcs)
 #define LayerFetchSafe(layer, n) ( ((n) >= 0 && (n) < (layer)->cur) \
-				? (layer)->array[n].funcs : (PerlIO_funcs*)0 )
+				? (layer)->array[n].funcs : PERLIO_FUNCS_CAST(&PerlIO_unix) )
 
 #ifndef PERLIO_FUNCS_DECL
 #define PERLIO_FUNCS_DECL(funcs) const PerlIO_funcs funcs

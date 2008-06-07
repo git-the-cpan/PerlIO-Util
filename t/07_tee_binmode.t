@@ -131,8 +131,7 @@ close $tee;
 ok unlink($file1), "unlink $file1";
 ok unlink($file2), "unlink $file2";
 
-# patch for debug
-
+# patch to make spaces visible
 BEGIN{
 	my $orig = Test::More->builder->can('_is_diag');
 
@@ -142,8 +141,7 @@ BEGIN{
 		if($type eq 'eq'){
 			for my $v($got, $expect){
 				if(defined $v){
-					$v =~ s/\x0D/\\x0D/g;
-					$v =~ s/\x0A/\\x0A/g;
+					$v =~ s/(\s)/sprintf '\\x%02X', $1/eg;
 				}
 			}
 		}

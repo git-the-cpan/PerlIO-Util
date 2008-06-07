@@ -11,7 +11,7 @@ BEGIN{
 		exit;
 	}
 	else{
-		plan tests => 21;
+		plan tests => 22;
 	}
 }
 use IO::Dir;
@@ -68,3 +68,5 @@ ok !open($dir, '<:dir', File::Spec->join($Bin, 'util', '.lock')), "open:dir for 
 
 ok !open($dir, '<:dir', File::Spec->join($Bin, 'util', '@@@')), "open:dir no such directory (\$!='$!')";
 #ok $!{ENOENT}, "... no such file or directory (\$!=$!)";
+
+ok !binmode(STDIN, ':dir'), ':dir without an argument';

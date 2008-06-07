@@ -9,6 +9,10 @@ PerlIO::reverse - Reads lines backward
 	open my $rev, '<:reverse', $file;
 	print while <$rev>; # print contents reversely
 
+=head1 SYNOPSIS
+
+The C<:reverse> layer reads lines backward like C<tac(1)>.
+
 =head1 EXAMPLE
 
 Here is an minimal implementation of C<tac(1)>.
@@ -18,6 +22,22 @@ Here is an minimal implementation of C<tac(1)>.
 	use open IN => ':reverse';
 	print while <>;
 	__END__
+
+=head1 NOTE
+
+=over 4
+
+=item *
+
+This layer cannot deal with unseekable filehandles and layers: tty,
+C<:gzip>, C<:dir>, etc.
+
+=item *
+
+This layer is partly imcompatible with Win32 system. You have to call
+B<binmode($fh)> before pushing it dynamically.
+
+=back
 
 =head1 SEE ALSO
 

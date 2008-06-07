@@ -9,9 +9,21 @@ PerlIO::excl - Creates a file only if it doesn't exist
 
 	open my $io,  '+< :creat :excl', $file;
 
+=head1 DESCRIPTION
+
+C<PerlIO::excl> appends O_EXCL to the open flags.
+
+When you'd like to create a file only if it doesn't exist before, you
+can use the C<:excl> layer and the C<:creat> layer with an open mode
+'<' or '+<'.
+
 =head1 SEE ALSO
 
 L<PerlIO::Util>.
+
+L<PerlIO::creat>.
+
+L<perlfunc/sysopen>.
 
 =head1 AUTHOR
 

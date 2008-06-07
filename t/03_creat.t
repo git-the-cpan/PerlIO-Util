@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 22;
+use Test::More tests => 21;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -9,7 +9,6 @@ BEGIN{
 	eval 'use Fcntl;1' or *O_RDWR = sub(){ 2 };
 }
 
-use PerlIO::Util;
 use Fatal qw(unlink);
 
 #use subs 'open';
@@ -22,8 +21,6 @@ use Fatal qw(unlink);
 #	}
 #	return $st;
 #}
-
-ok scalar(PerlIO::Layer->find('creat')), "':creat' is available";
 
 my $file = File::Spec->join($Bin, 'util', '.creat');
 

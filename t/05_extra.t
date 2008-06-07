@@ -7,8 +7,6 @@ use Test::More tests => 13;
 use FindBin qw($Bin);
 use File::Spec;
 
-use PerlIO::Util;
-
 my $file = File::Spec->join($Bin, 'util', '.extra');
 
 unlink $file;

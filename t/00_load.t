@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 5;
+use Test::More tests => 7;
 
 use_ok( 'PerlIO::Util' );
 
@@ -10,4 +10,5 @@ require_ok('PerlIO::flock');
 require_ok('PerlIO::creat');
 require_ok('PerlIO::excl');
 require_ok('PerlIO::tee');
-
+require_ok('PerlIO::dir');
+require_ok('PerlIO::reverse');

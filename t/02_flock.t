@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 21;
+use Test::More tests => 20;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -10,11 +10,6 @@ BEGIN{
 	eval 'use Fcntl;1'
 		or *O_RDONLY = sub(){ 0 }; # maybe
 }
-
-use PerlIO::Util;
-
-ok scalar(PerlIO::Layer->find('flock')), "':flock' is available";
-
 
 my $file = File::Spec->catfile($Bin, "util/.lock");
 

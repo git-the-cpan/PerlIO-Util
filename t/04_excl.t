@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 11;
+use Test::More tests => 10;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -13,10 +13,7 @@ BEGIN{
 }
 
 
-use PerlIO::Util;
 use Fatal qw(unlink);
-
-ok scalar(PerlIO::Layer->find('excl')), "':excl' is available";
 
 my $file = File::Spec->join($Bin, 'util', '.excl');
 

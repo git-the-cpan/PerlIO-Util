@@ -9,9 +9,20 @@ PerlIO::creat - Creates a file if it doesn't exist
 
 	open my $io,  '+< :creat', $file;
 
+=head1 DESCRIPTION
+
+C<PerlIO::creat> appends O_CREAT to the open flags.
+
+When you'd like to create a file but not to truncate it, you can use 
+the C<:creat> layer with an open mode '<' or '+<'.
+
 =head1 SEE ALSO
 
 L<PerlIO::Util>.
+
+L<PerlIO::excl>.
+
+L<perlfunc/sysopen>.
 
 =head1 AUTHOR
 

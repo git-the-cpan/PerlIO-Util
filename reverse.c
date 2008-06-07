@@ -5,17 +5,12 @@
 
 #define IOR(f) (PerlIOSelf(f, PerlIOReverse))
 
-#undef BUFSIZ
 
-#define BUFSIZ 2048
+#define REV_BUFSIZ 4096
+
 #define SEGSV_BUFSIZ 512
-#define BUFSV_BUFSIZ (BUFSIZ+SEGSV_BUFSIZ)
+#define BUFSV_BUFSIZ (REV_BUFSIZ+SEGSV_BUFSIZ)
 
-enum iorev_state{
-	first_reading,
-	end_newline,
-	not_end_newline,
-};
 
 typedef struct{
 	struct _PerlIO base;
@@ -25,15 +20,44 @@ typedef struct{
 	SV* bufsv; /* reversed buffer */
 	STDCHAR* ptr;
 	STDCHAR* end;
-
-	enum iorev_state state;
 } PerlIOReverse;
 
+static PerlIO*
+PerlIOReverse_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
+		  const char* mode, int fd, int imode, int perm,
+		  PerlIO* f, int narg, SV** args){
+	PerlIO_funcs* tab;
+
+	tab = LayerFetchSafe(layers, 0); /* probably :unix */
+	assert(tab && tab->Open);
+
+	if( PerlIOUnix_oflags(mode) & (O_WRONLY | O_RDWR) ){
+		SETERRNO(EINVAL, LIB_INVARG);
+		return NULL;
+	}
+
+	f = tab->Open(aTHX_ tab, layers, (IV)0, mode, fd, imode, perm, f, narg, args);
+
+/*
+	if(LayerFetchSafe(layers, layers->cur-2)->kind & PERLIO_K_CANCRLF){
+		// to do something?
+	}
+*/
+	if(f){
+		if(!PerlIO_push(aTHX_ f, self, mode, PerlIOArg)){
+			PerlIO_close(f);
+			return NULL;
+		}
+	}
+	return f;
+}
 
 static IV
 PerlIOReverse_pushed(pTHX_ PerlIO *f, const char *mode, SV *arg, PerlIO_funcs *tab){
 	PerlIOReverse* ior;
 	PerlIO* nx  = PerlIONext(f);
+	Off_t pos;
+	PerlIO* p;
 
 	if(!PerlIOValid(nx)){
 		SETERRNO(EBADF, SS_IVCHAN);
@@ -49,20 +73,32 @@ PerlIOReverse_pushed(pTHX_ PerlIO *f, const char *mode, SV *arg, PerlIO_funcs *t
 		return -1;
 	}
 
+	for(p = nx; PerlIOValid(p); p = PerlIONext(p)){
+		PERLIO_FUNCS_DECL(*tab) = PerlIOBase(p)->tab;
+
+		if(!(tab->kind & PERLIO_K_RAW) || (tab->kind & PERLIO_K_CANCRLF)){
+			Perl_warner(aTHX_ packWARN(WARN_LAYER),
+				":%s is not a raw layer",
+				PerlIOBase(p)->tab->name);
+			SETERRNO(EINVAL, LIB_INVARG);
+			return -1;
+		}
+	}
+/*
 	if(!PerlIO_binmode(aTHX_ nx, '<', O_BINARY, Nullch)){
 		SETERRNO(EINVAL, LIB_INVARG);
 		return -1;
 	}
-
-	if(PerlIO_tell(nx) == 0){
-		if(PerlIO_seek(nx, (Off_t)0, SEEK_END) < 0){
+*/
+	pos = PerlIO_tell(nx);
+	if(pos <= 0){
+		if(pos < 0 || PerlIO_seek(nx, (Off_t)0, SEEK_END) < 0){
 			return -1;
 		}
 	}
 	ior = IOR(f);
 	ior->segsv = newSV(SEGSV_BUFSIZ);
 	ior->bufsv = newSV(BUFSV_BUFSIZ);
-	ior->state = first_reading;
 
 	assert( ior->bufsv );
 	assert( ior->segsv );
@@ -77,8 +113,9 @@ PerlIOReverse_popped(pTHX_ PerlIO* f){
 	PerlIOReverse* ior = IOR(f);
 
 	PerlIO_debug("PerlIOReverse_popped:"
-			" size of bufsv=%ld, size of segsv=%ld\n",
-			(long)SvLEN(ior->bufsv), (long)SvLEN(ior->segsv));
+			" bufsv=%ld, segsv=%ld\n",
+			(long)(ior->bufsv ? SvLEN(ior->bufsv) : 0),
+			(long)(ior->segsv ? SvLEN(ior->segsv) : 0));
 
 	SvREFCNT_dec(ior->bufsv);
 	SvREFCNT_dec(ior->segsv);
@@ -86,15 +123,14 @@ PerlIOReverse_popped(pTHX_ PerlIO* f){
 	return PerlIOBase_popped(aTHX_ f);
 }
 
-#define write_buf(s, l, m)   PerlIOReverse_debug_write_buf(s, l, m)
-#define write_bufsv(sv, msg) PerlIOReverse_debug_write_buf(SvPVX(sv), SvCUR(sv), msg)
+#define write_buf(s, l, m)   PerlIOReverse_debug_write_buf(aTHX_ s, l, m)
+#define write_bufsv(sv, msg) PerlIOReverse_debug_write_buf(aTHX_ SvPVX(sv), SvCUR(sv), msg)
 
 /* to pass -Wmissing-prototypes -Wunused-function */
-void PerlIOReverse_debug_write_buf(register const STDCHAR*, const Size_t count, const STDCHAR* msg);
+void PerlIOReverse_debug_write_buf(pTHX_ register const STDCHAR*, const Size_t count, const STDCHAR* msg);
 
 void
-PerlIOReverse_debug_write_buf(register const STDCHAR* src, const Size_t count, const STDCHAR* msg){
-	dTHX;
+PerlIOReverse_debug_write_buf(pTHX_ register const STDCHAR* src, const Size_t count, const STDCHAR* msg){
 	char* buf;
 	char* end;
 	register char* ptr;
@@ -115,7 +151,7 @@ PerlIOReverse_debug_write_buf(register const STDCHAR* src, const Size_t count, c
 	}
 	PerlIO_write(PerlIO_stderr(), "[", 1);
 	PerlIO_write(PerlIO_stderr(), buf, count);
-	warn("]");
+	Perl_warn(aTHX_ "]");
 	//PerlIO_write(PerlIO_stderr(), "]\n", 2);
 
 	Safefree(buf);
@@ -124,11 +160,8 @@ PerlIOReverse_debug_write_buf(register const STDCHAR* src, const Size_t count, c
 
 static SSize_t
 reverse_read(pTHX_ PerlIO* f, STDCHAR* vbuf, SSize_t count){
-	PerlIOReverse* ior = IOR(f);
 	PerlIO* nx = PerlIONext(f);
 	Off_t pos;
-
-	if(ior->state == first_reading) count--; /* for extra newline */
 
 	pos = PerlIO_tell(nx);
 	if(pos <= 0){
@@ -153,18 +186,10 @@ reverse_read(pTHX_ PerlIO* f, STDCHAR* vbuf, SSize_t count){
 	}
 
 	count = PerlIO_read(nx, vbuf, (Size_t)count);
-	if(PerlIO_seek(nx, (Off_t)-count, SEEK_CUR) < 0){
-		return -1;
-	}
 
-	if(ior->state == first_reading){
-		if(vbuf[count-1] == '\n'){
-			ior->state = end_newline;
-		}
-		else{
-			ior->state = not_end_newline;
-			vbuf[count] = '\n';
-			count++;
+	if(count > 0){
+		if(PerlIO_seek(nx, (Off_t)-count, SEEK_CUR) < 0){
+			return -1;
 		}
 	}
 
@@ -181,17 +206,17 @@ PerlIOReverse_fill(pTHX_ PerlIO* f){
 	SV* segsv = ior->segsv;
 	STDCHAR* rbuf;
 
-	STDCHAR buf[BUFSIZ];
+	STDCHAR  buf[ REV_BUFSIZ ];
 	STDCHAR* ptr;
 	STDCHAR* end;
 	STDCHAR* start;
 
 	IOLflag_off(f, PERLIO_F_RDBUF);
 
-	SvCUR_set(bufsv, 0);
+	SvCUR(bufsv) = 0;
 
 	retry:
-	avail = reverse_read(aTHX_ f, buf, BUFSIZ);
+	avail = reverse_read(aTHX_ f, buf, REV_BUFSIZ);
 
 	if(avail < 0){
 		IOLflag_on(f, avail < 0 ? PERLIO_F_ERROR : PERLIO_F_EOF);
@@ -207,11 +232,11 @@ PerlIOReverse_fill(pTHX_ PerlIO* f){
 		}
 
 		if(ptr >= end){ /* only one line or segment not ending newline */
+
 			/* fill segment simply */
 			sv_insert(segsv, 0, 0, buf, (Size_t)(ptr - start));
 			goto retry;
 		}
-
 	}
 
 
@@ -245,19 +270,20 @@ PerlIOReverse_fill(pTHX_ PerlIO* f){
 
 	while(ptr < end){
 		if(*(ptr++) == '\n'){
-			STRLEN line_len = ptr - start;
+			/* line length: ptr - start */
+			/* write pos:   end - ptr   */
 
 			Copy( start,
 			      rbuf + (end - ptr),
-			      line_len, STDCHAR);
+			      ptr - start, STDCHAR);
 
 			start = ptr;
 		}
 	}
-
-	if(IOLflag(f, PERLIO_F_EOF) && ior->state == not_end_newline){
-		SvCUR(bufsv)--; /* chop */
+	if(start != end){
+		Copy( start, rbuf + (end - ptr), ptr - start, STDCHAR);
 	}
+
 
 /*
 	write_bufsv(segsv, "segm");
@@ -308,8 +334,8 @@ PERLIO_FUNCS_DECL(PerlIO_reverse) = {
 	PERLIO_K_BUFFERED | PERLIO_K_RAW,
 	PerlIOReverse_pushed,
 	PerlIOReverse_popped,
-	NULL, /* open */
-	NULL, /* binmode */
+	PerlIOReverse_open,
+	PerlIOBase_binmode,
 	NULL, /* getarg */
 	NULL, /* fileno */
 	NULL, /* dup */

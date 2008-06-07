@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.32';
+our $VERSION = '0.40';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -10,7 +10,7 @@ XSLoader::load(__PACKAGE__, $VERSION);
 *IO::Handle::get_layers = \&PerlIO::get_layers;
 
 sub open{
-	unless(@_ >= 3){
+	if(@_ < 3){
 		require Carp;
 		Carp::croak('Usage: PerlIO::Util->open($mode, @args)');
 	}
@@ -34,7 +34,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.32
+This document describes PerlIO::Util version 0.40
 
 =head1 SYNOPSIS
 
@@ -46,16 +46,17 @@ This document describes PerlIO::Util version 0.32
 
     open IN, "+<:creat :excl", ...; # with O_CREAT | O_EXCL
 
-    open OUT, ">:tee", $file, @others;
-    print OUT "foo"; # print to $file and @others
+    open OUT, ">:tee", $file, \$scalar, \*STDERR;
+    print OUT "foo"; # print to $file, $scalar and *STDERR
 
     # utility routines
 
-    STDOUT->push_layer(scalar => \my $s);
+    my $fh = PerlIO::Util->open('<', $file); # it dies on fail
+
+    STDOUT->push_layer(scalar => \my $s); # it dies on fail
     print "foo";
 
     print STDOUT->pop_layer(); # => scalar
-
     print $s; # => foo
 
 =head1 DESCRIPTION
@@ -64,129 +65,60 @@ C<PerlIO::Util> provides general PerlIO utilities: utility layers and utility
 methods.
 
 Utility layers are a part of C<PerlIO::Util>, but you don't need to
-say C<use PerlIO::Util> for loading them. They are automatically loaded.
+say C<use PerlIO::Util> for loading them. They will be automatically loaded.
 
 =head1 UTILITY LAYERS
 
-=head2 :flock
+=head2 :flock 
 
-The C<:flock> layer provides an interface to C<flock()>.
+Easy interface to C<flock()>.
 
-It tries to lock the filehandle in C<open()> (or C<binmode()>) with
-C<flock()> according to the open mode. That is, if a file is opened for writing,
-C<:flock> attempts exclusive lock (using LOCK_EX). Otherwise, it attempts
-shared lock (using LOCK_SH).
-
-It waits until the lock is granted. If an argument C<non-blocking> (or
-C<LOCK_NB>) is suplied, the call of C<open()> fails when the lock cannot be
-granted.
-
-For example:
-
-	# tries shared lock, or waits until the lock is granted
-	open IN, "<:flock", $file;
-	open IN, "<:flock(blocking)", $file;     # ditto.
-
-	# tries shared lock, or returns undef
-	open IN, "<:flock(non-blocking)", $file; 
-	open IN, "<:flock(LOCK_NB)", $file;      # ditto.
-
-See L<perlfunc/flock>.
+See L<PerlIO::flock>.
 
 =head2 :creat
 
+Use of O_CREAT without C<Fcntl>.
+
+See L<PerlIO::creat>.
+
 =head2 :excl
 
-They append O_CREAT or O_EXCL to the open flags.
+Use of O_EXCL without C<Fcntl>.
 
-When you'd like to create a file but not to truncate it, then you can use 
-the C<:creat> layer with the open mode '<' or '+<'.
-
-	open(IO, '+< :creat', $file);
-
-When you'd like to create a file only if it doesn't exist before, then you
-can use the C<:excl> layer with the C<:creat> layer and '<' or '+<'.
-
-	open(IO, '+< :excl :creat', $file);
-
-That is, it is used to emulate a part of C<sysopen()> without C<Fcntl>.
-
-See L<perlfunc/sysopen>.
+See L<PerlIO::excl>.
 
 =head2 :tee
 
-The C<:tee> layer provides a multiplex output stream like C<tee(1)> command.
-It is used to make a filehandle write to one or more files (or
-scalars via the C<:scalar> layer) at the same time.
+Multiplex output layer.
 
-You can use C<push_layer()> (defined in C<PerlIO::Util>) to add a I<source>
-to a filehandle. The I<source> may be a file name, a scalar reference, or a
-filehandle. For example:
+See L<PerlIO::tee>.
 
-	$fh->push_layer(tee => $file);    # meaning "> $file"
-	$fh->push_layer(tee => ">>$file");# append mode
-	$fh->push_layer(tee => \$scalar); # via :scalar
-	$fh->push_layer(tee => \*OUT);    # shallow copy, not duplication
+=head2 :dir
 
-You can also use C<open()> with multiple arguments.
-However, it is just a syntax sugar to call C<push_layer()>: One C<:tee>
-layer has a single extra filehandle, so arguments C<$x, $y, $z> of C<open()>,
-for example, prepares a filehandle with one basic layer and two C<:tee>
-layers with a internal filehandle.
+PerlIO interface to directory functions.
 
-	open my $tee, '>:tee', $x, $y, $z;
-	# the code above means:
-	#   open my $tee, '>', $x;
-	#   $tee->push_layer(tee => $y);
-	#   $tee->push_layer(tee => $z);
+See L<PerlIO::dir>.
 
-	$tee->get_layers(); # => "perlio", "tee($y)", "tee($z)"
+=head2 :reverse
 
-	$tee->pop_layer();  # "tee($z)" is popped
-	$tee->pop_layer();  # "tee($y)" is popped
-	# now $tee is a filehandle only to $x
+Reverse input iterator.
 
-=head1 :dir
-
-The C<:dir> layer provides an interface to directories.
-
-There is an important difference from Perl's C<readdir()>. This layer
-B<appends a newline code>, C<\n>, to the end of the name, because
-C<readline()> requires input separators. Call C<chomp()> if necesary.
-
-	open my $dir, '<:dir', '.';
-	my @dirs = <$dir>;    # readdir() but added "\n" at the end of the name
-	chomp @dirs;          # if necessary
-
-You can use C<seek($dir, 0, 0)> only for C<rewinddir()>. 
-
-	seek $dir, 0, 0;      # rewinddir()
-
-=head1 :reverse
-
-The C<:reverse> layer reads lines backward like C<tac(1)>.
-
-	open my $rin, '<:reverse', $file;
-	while(<$rin>){
-		# processing lines reversely
-	}
-
-Currently C<tell()> and C<seek()> are not implemented.
+See L<PerlIO::reverse>.
 
 =head1 UTILITY METHODS
 
-=head2 PerlIO::Util-E<gt>open($mode, @args)
+=head2 PerlIO::Util-E<gt>open(I<mode>, I<args>)
 
 Calls built-in C<open()>, and returns an anonymus C<IO::Handle> instance.
 It dies on fail.
 
-Unlike Perl's C<open()> (nor C<IO::File>'s), I<$mode> is always required. 
+Unlike Perl's C<open()> (nor C<IO::File>'s), I<mode> is always required. 
 
-=head2 PerlIO::Util-E<gt>known_layers()
+=head2 PerlIO::Util->known_layers( )
 
 Returns the known layer names.
 
-=head2 I<FILEHANDLE>-E<gt>get_layers()
+=head2 I<FILEHANDLE>-E<gt>get_layers( )
 
 Returns the names of the PerlIO layers on I<FILEHANDLE>.
 
@@ -199,7 +131,7 @@ I<arg>, e.g. a scalar reference to the C<:scalar> layer.
 
 This method dies on fail. Otherwise, it returns I<FILEHANDLE>.
 
-=head2 I<FILEHANDLE>-E<gt>pop_layer()
+=head2 I<FILEHANDLE>-E<gt>pop_layer( )
 
 Equivalent to C<binmode(*FILEHANDLE, ':pop')>. It removes a top level layer
 from I<FILEHANDLE>, but note that you cannot remove dummy layers such as
@@ -221,11 +153,8 @@ L<http://rt.cpan.org/>.
 
 =head1 SEE ALSO
 
-L<PerlIO::flock>, L<PerlIO::creat>, L<PerlIO::excl>, L<PerlIO::tee>, L<PerlIO::dir>
-
-L<perlfunc/flock> for C<:flock>.
-
-L<perlfunc/sysopen> for C<:creat> and C<:excl>.
+L<PerlIO::flock>, L<PerlIO::creat>, L<PerlIO::excl>, L<PerlIO::tee>,
+L<PerlIO::dir>, L<PerlIO::reverse>.
 
 L<PerlIO> for C<push_layer()> and C<pop_layer()>.
 

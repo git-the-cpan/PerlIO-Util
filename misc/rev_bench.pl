@@ -20,7 +20,7 @@ chomp $file;
 
 cmpthese timethese -1 => {
 	':reverse' => sub{
-		open my $in, '<:unix:reverse', $file or die $!;
+		open my $in, '<:reverse', $file or die $!;
 		while(<$in>){
 			#...;
 		}

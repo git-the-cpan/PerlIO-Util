@@ -14,6 +14,40 @@ PerlIO::tee - Multiplex output layer
 	$out->push_layer(tee => \$scalar);
 	$out->push_layer(tee => \*FILEHANDLE);
 
+=head1 DESCRIPTION
+
+C<PerlIO::tee> provides a multiplex output stream like C<tee(1)> command.
+It makes a filehandle write to one or more files (or
+scalars via the C<:scalar> layer) at the same time.
+
+You can use C<push_layer()> (defined in C<PerlIO::Util>) to add a I<source>
+to a filehandle. The I<source> may be a file name, a scalar reference, or a
+filehandle. For example:
+
+	$fh->push_layer(tee => $file);    # meaning "> $file"
+	$fh->push_layer(tee => ">>$file");# append mode
+	$fh->push_layer(tee => \$scalar); # via :scalar
+	$fh->push_layer(tee => \*OUT);    # shallow copy, not duplication
+
+You can also use C<open()> with multiple arguments.
+However, it is just a syntax sugar to call C<push_layer()>: One C<:tee>
+layer has a single extra filehandle, so arguments C<$x, $y, $z> of C<open()>,
+for example, prepares a filehandle with one default layer and two C<:tee>
+layers with a internal filehandle.
+
+	open my $tee, '>:tee', $x, $y, $z;
+	# the code above means:
+	#   open my $tee, '>', $x;
+	#   $tee->push_layer(tee => $y);
+	#   $tee->push_layer(tee => $z);
+
+	$tee->get_layers(); # => "perlio", "tee($y)", "tee($z)"
+
+	$tee->pop_layer();  # "tee($z)" is popped
+	$tee->pop_layer();  # "tee($y)" is popped
+	# now $tee is a filehandle only to $x
+
+
 =head1 EXAMPLE
 
 Here is an minimal implementation of C<tee(1)>.

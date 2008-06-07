@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 59;
+use Test::More tests => 58;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -10,9 +10,6 @@ use Errno qw(EBADF);
 use IO::Handle ();
 
 use PerlIO::Util;
-
-ok( PerlIO::Layer->find('tee'), "tee defined" );
-
 
 ok open(my $tee, ">:scalar :tee", \my($x, $y, $z)), "open";
 

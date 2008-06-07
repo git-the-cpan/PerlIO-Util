@@ -62,14 +62,10 @@ PerlIOTee_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 		  PerlIO* f, int narg, SV** args){
 	PerlIO_funcs* tab;
 	SV* arg;
-	const char* p;
 
-	p = mode;
-	while(*p){
-		if(*p == 'r' || *p == '+'){
-			Perl_croak(aTHX_ "Cannot open:tee for reading");
-		}
-		p++;
+	if(!(PerlIOUnix_oflags(mode) & O_WRONLY)){ /* cannot open:tee for reading */
+		SETERRNO(EINVAL, LIB_INVARG);
+		return NULL;
 	}
 
 	tab = LayerFetchSafe(layers, n - 1);
@@ -209,10 +205,7 @@ PerlIOTee_popped(pTHX_ PerlIO* f){
 	if(TeeArg(f) && SvTYPE(TeeArg(f)) != SVt_PVIO){
 		PerlIO_close(TeeOut(f));
 	}
-	TeeOut(f) = NULL;
-
 	SvREFCNT_dec(TeeArg(f));
-	TeeArg(f) = NULL;
 	return 0;
 }
 

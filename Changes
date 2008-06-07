@@ -3,7 +3,12 @@ Revision history for PerlIO-Util
 TODO:
 * PerlIO::grep - Reads lines matching a pattern
 * PerlIO::fse - Deals with File System Encodings
-* $fh->insert_layer(0, $layer => $arg)
+
+0.40 Sat Jun  7 12:33:07 2008
+	- change to follow tac(1) in GNU coreutils when files don't end newline
+	- :reverse refuses non-raw layers (namely, :crlf, :encoding, etc.)
+	- add PerlIOReverse_open()
+	- fix some bugs
 
 0.32 Tue Jun  3 22:41:55 2008
 	- change some tests for CRLF platforms (temporarily)

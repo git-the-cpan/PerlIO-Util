@@ -42,11 +42,15 @@ PerlIODir_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 	PERL_UNUSED_ARG(perm);
 	PERL_UNUSED_ARG(narg);
 
+#ifndef EACCES
+#define EACCES EPERM
+#endif
+
 	if(!imode){
 		imode = PerlIOUnix_oflags(mode);
 	}
 	if( imode & (O_WRONLY | O_RDWR) ){
-		SETERRNO(EPERM, RMS_PRV);
+		SETERRNO(EACCES, RMS_PRV);
 		return NULL;
 	}
 	if(PerlIOValid(f)){ /* reopen */
@@ -61,6 +65,10 @@ PerlIODir_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 
 static IV
 PerlIODir_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
+	if(!SvOK(arg)){
+		SETERRNO(EINVAL, LIB_INVARG);
+		return -1;
+	}
 
 	Dirp(f) = PerlDir_open(SvPV_nolen(arg));
 	if(!Dirp(f)){

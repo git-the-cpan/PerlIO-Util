@@ -104,7 +104,7 @@ PPCODE:
 	}
 	tab = PerlIO_find_layer(aTHX_ laypv, laylen, TRUE);
 	if(tab){
-		if(!PerlIO_push(aTHX_ filehandle, tab, Nullch, arg)){
+		if(!PerlIO_push(aTHX_ filehandle, tab, Nullch, arg ? arg : &PL_sv_undef)){
 			Perl_croak(aTHX_ "push_layer() failed: %s",
 				PerlIOValid(filehandle)
 					? Strerror(errno)
@@ -115,7 +115,7 @@ PPCODE:
 		Perl_croak(aTHX_ "Unknown PerlIO layer \"%.*s\"",
 				(int)laylen, laypv);
 	}
-	XSRETURN(1);
+	XSRETURN(1); /* returns self */
 
 void
 pop_layer(filehandle)

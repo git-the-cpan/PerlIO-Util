@@ -74,8 +74,8 @@ useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 		Perl_warner(aTHX_ packWARN(WARN_LAYER),
 			"Too late for %s layer", tab->name);
 	}
-	SETERRNO(EINVAL, LIB_INVARG);
 
+	SETERRNO(EINVAL, LIB_INVARG);
 	return -1;
 }
 
