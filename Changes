@@ -4,6 +4,11 @@ TODO:
 * PerlIO::grep - Reads lines matching a pattern
 * PerlIO::fse - Deals with File System Encodings
 
+0.41 Sat Jun  7 14:44:10 2008
+	- no code change
+	- require perl 5.8.6 because of possible null pointer accesses
+		(PerlIO_binmode() in perlio.c before perl < 5.8.6)
+
 0.40 Sat Jun  7 12:33:07 2008
 	- change to follow tac(1) in GNU coreutils when files don't end newline
 	- :reverse refuses non-raw layers (namely, :crlf, :encoding, etc.)
