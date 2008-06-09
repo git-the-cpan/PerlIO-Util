@@ -25,8 +25,9 @@ dump_perlio(pTHX_ PerlIO* f, int level){
 		int i;
 		for(i = 0; i < level; i++) printf("\t");
 
-		printf(":%s (%p) flags=0x%lx",
-			PerlIOBase(f)->tab->name, f, (unsigned long)PerlIOBase(f)->flags);
+		printf("%p:%s(%d)",
+			f, PerlIOBase(f)->tab->name,
+			(int)PerlIO_fileno(f));
 		PutFlag(EOF);
 		PutFlag(CANWRITE);
 		PutFlag(CANREAD);

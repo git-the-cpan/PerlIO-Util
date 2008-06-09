@@ -26,7 +26,7 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 
 	lock_mode = IOLflag(fp, PERLIO_F_CANWRITE) ? LOCK_EX : LOCK_SH;
 
-	if(SvOK(arg)){
+	if(arg && SvOK(arg)){
 		const char* blocking = SvPV_nolen(arg);
 
 		if(strEQ(blocking, "blocking")){
@@ -65,7 +65,6 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 static IV
 useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 		PerlIO_funcs* tab){
-
 	PERL_UNUSED_ARG(fp);
 	PERL_UNUSED_ARG(mode);
 	PERL_UNUSED_ARG(arg);
@@ -75,16 +74,16 @@ useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 			"Too late for %s layer", tab->name);
 	}
 
-	SETERRNO(EINVAL, LIB_INVARG);
-	return -1;
+	return 0;
 }
 
 static PerlIO*
 PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 		const char* mode, int fd, int imode, int perm,
 		PerlIO* f, int narg, SV** args, int flags){
-	PerlIO_funcs* tab;
+	PerlIO_funcs* tab = NULL;
 	char numeric_mode[5]; /* [I#]? [wra]\+? [tb] \0 */
+	IV i;
 
 	PERL_UNUSED_ARG(self);
 
@@ -103,19 +102,34 @@ PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n
 		perm = 0666;
 	}
 
-	tab = LayerFetchSafe(layers, n - 1);
-
-	if(!(tab && tab->Open)){
-		SETERRNO(EINVAL, LIB_INVARG);
-		return NULL;
+	i = n;
+	while(--i >= 0){
+		tab = LayerFetch(layers, i);
+		if(tab && tab->Open){
+			break;
+		}
 	}
-/*
-	warn("# open(tab=%s, mode=%s, imode=0x%x, perm=0%o)",
-		tab->name, mode, imode, perm);
-// */
 
-	return tab->Open(aTHX_ tab, layers, n - 1,  mode,
+	if(tab && tab->Open){
+		f = tab->Open(aTHX_ tab, layers, i,  mode,
 				fd, imode, perm, f, narg, args);
+
+		/* apply above layers
+		   e.g. [ :perlio :creat :utf8 :excl ]
+		                         ~~~~~        
+		*/
+
+		if(f && ++i < n){
+			/*print_layer_list(aTHX_ layers, i, n);*/
+			if(PerlIO_apply_layera(aTHX_ f, mode, layers, i, n) != 0){
+				PerlIO_close(f);
+				f = NULL;
+			}
+		}
+
+	}
+
+	return f;
 }
 
 static PerlIO*

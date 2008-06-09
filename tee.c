@@ -209,36 +209,12 @@ PerlIOTee_popped(pTHX_ PerlIO* f){
 	return 0;
 }
 
-#ifdef PERLIOUTIL_WIN32_EMULATE /*  2008/05/22 */
-#define PERLIO_USING_CRLF
-
-static IV
-win32_crlf_binmode(pTHX_ PerlIO *f)
-{
-    if ((PerlIOBase(f)->flags & PERLIO_F_CRLF)) {
-	/* In text mode - flush any pending stuff and flip it */
-	PerlIOBase(f)->flags &= ~PERLIO_F_CRLF;
-#ifndef PERLIO_USING_CRLF
-	/* CRLF is unusual case - if this is just the :crlf layer pop it */
-	if (PerlIOBase(f)->tab == &PerlIO_crlf) {
-		PerlIO_pop(aTHX_ f);
-	}
-#endif
-    }
-    return 0;
-}
-#undef PERLIO_USING_CRLF
-#endif
-
 static IV
 PerlIOTee_binmode(pTHX_ PerlIO* f){
 	if(!PerlIOValid(f)){
 		return -1;
 	}
 
-#ifdef PERLIOUTIL_WIN32_EMULATE
-	((PerlIO_funcs*)&PerlIO_crlf)->Binmode = &win32_crlf_binmode;
-#endif
 	PerlIOBase_binmode(aTHX_ f); /* remove PERLIO_F_UTF8 */
 
 	PerlIO_binmode(aTHX_ PerlIONext(f), '>', O_BINARY, Nullch);
@@ -246,7 +222,7 @@ PerlIOTee_binmode(pTHX_ PerlIO* f){
 	/* warn("Tee_binmode %s", PerlIOBase(f)->tab->name); */
 	/* there is a case where an unknown layer is supplied */
 	if( PerlIOBase(f)->tab != &PerlIO_tee ){
-#if 0
+#if 0 /* May, 2008 */
 		PerlIO* t = PerlIONext(f);
 		int n = 0;
 		int ok = 0;

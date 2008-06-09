@@ -77,6 +77,8 @@ PerlIODir_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 
 	DirBufPtr(f) = DirBufEnd(f) = DirBuf(f);
 
+	PerlIOBase(f)->flags |= (PERLIO_F_NOTREG | PERLIO_F_OPEN);
+
 	return PerlIOBase_pushed(aTHX_ f, mode, arg, tab);
 }
 
@@ -244,7 +246,7 @@ PERLIO_FUNCS_DECL(PerlIO_dir) = {
     PerlIODir_pushed,
     PerlIODir_popped,
     PerlIODir_open,
-    NULL, /* binmode */
+    PerlIOBase_binmode,
     NULL, /* getarg */
     NULL, /* fileno */
     NULL, /* dup */

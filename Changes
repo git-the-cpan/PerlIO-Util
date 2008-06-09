@@ -4,6 +4,13 @@ TODO:
 * PerlIO::grep - Reads lines matching a pattern
 * PerlIO::fse - Deals with File System Encodings
 
+0.42 Sun Jun  8 23:37:12 2008
+	- fix examples of PerlIO::excl
+	- accept dummy layers regardless of the order
+		(e.g. ":utf8 :creat :flock" and ":flock :utf8 :creat" are okey)
+	- fix to work on Win32 system
+	- accept perl < 5.8.6, but not recommended
+
 0.41 Sat Jun  7 14:44:10 2008
 	- no code change
 	- require perl 5.8.6 because of possible null pointer accesses

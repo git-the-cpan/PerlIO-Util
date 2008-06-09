@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -17,8 +17,7 @@ sub open{
 	my $anonio;
 	unless(CORE::open $anonio, $_[1], @_[2 .. $#_]){
 		require Carp;
-		local $" = ', ';
-		Carp::croak("Cannot open(@_): $!");
+		Carp::croak('Cannot open(',join(', ', @_[1 .. $#_]), "): $!");
 	}
 	return bless $anonio => 'IO::Handle';
 }
@@ -34,7 +33,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.41
+This document describes PerlIO::Util version 0.42
 
 =head1 SYNOPSIS
 
@@ -42,21 +41,21 @@ This document describes PerlIO::Util version 0.41
 
     # utility layers
 
-    open IN, "+<:flock", ...; # with flock(IN, LOCK_EX)
+    open $in, "+<:flock", ...; # with flock(IN, LOCK_EX)
 
-    open IN, "+<:creat :excl", ...; # with O_CREAT | O_EXCL
+    open $in, "+<:creat :excl", ...; # with O_CREAT | O_EXCL
 
-    open OUT, ">:tee", $file, \$scalar, \*STDERR;
-    print OUT "foo"; # print to $file, $scalar and *STDERR
+    open $out, ">:tee", $file, \$scalar, \*STDERR;
+    print $out "foo"; # print to $file, $scalar and *STDERR
 
     # utility routines
 
-    my $fh = PerlIO::Util->open('<', $file); # it dies on fail
+    $fh = PerlIO::Util->open('<', $file); # it dies on fail
 
-    STDOUT->push_layer(scalar => \my $s); # it dies on fail
+    *STDOUT->push_layer(scalar => \$s); # it dies on fail
     print "foo";
 
-    print STDOUT->pop_layer(); # => scalar
+    print *STDOUT->pop_layer(); # => scalar
     print $s; # => foo
 
 =head1 DESCRIPTION

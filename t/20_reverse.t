@@ -51,8 +51,13 @@ is scalar(<$r>), $f->{normal}{contents}[-1], 'normal readline again';
 open($r, '<:dir', '.') or die $!;
 ok !binmode($r, ':reverse'), "unseekable->push_layer(reverse) failed (\$!=$!)";
 
-1 while $r->pop_layer();
-ok !binmode($r, ':reverse'), ':reverse to invalid filehandle';
+SKIP:{
+	my $v = sprintf '%vd', $^V;
+	skip "perlio.c before perl 5.8.8 (this is $v) has some problems in binmode()", 1
+		if $] < 5.008_008;
+	1 while $r->pop_layer();
+	ok !binmode($r, ':reverse'), ':reverse to invalid filehandle';
+}
 ok !binmode(STDOUT, ':reverse'), ':reverse to output filehandle';
 
 sub make_files{

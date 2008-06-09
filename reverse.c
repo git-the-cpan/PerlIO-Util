@@ -29,7 +29,11 @@ PerlIOReverse_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 	PerlIO_funcs* tab;
 
 	tab = LayerFetchSafe(layers, 0); /* probably :unix */
-	assert(tab && tab->Open);
+
+	if(!(tab && tab->Open)){
+		SETERRNO(EINVAL, LIB_INVARG);
+		return NULL;
+	}
 
 	if( PerlIOUnix_oflags(mode) & (O_WRONLY | O_RDWR) ){
 		SETERRNO(EINVAL, LIB_INVARG);
@@ -74,9 +78,8 @@ PerlIOReverse_pushed(pTHX_ PerlIO *f, const char *mode, SV *arg, PerlIO_funcs *t
 	}
 
 	for(p = nx; PerlIOValid(p); p = PerlIONext(p)){
-		PERLIO_FUNCS_DECL(*tab) = PerlIOBase(p)->tab;
-
-		if(!(tab->kind & PERLIO_K_RAW) || (tab->kind & PERLIO_K_CANCRLF)){
+		if(!(PerlIOBase(p)->tab->kind & PERLIO_K_RAW)
+			|| (PerlIOBase(p)->flags & PERLIO_F_CRLF)){
 			Perl_warner(aTHX_ packWARN(WARN_LAYER),
 				":%s is not a raw layer",
 				PerlIOBase(p)->tab->name);

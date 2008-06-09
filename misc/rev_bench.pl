@@ -5,11 +5,12 @@ use warnings;
 use Benchmark qw(cmpthese timethese);
 
 use PerlIO::Util;
-my $file = `perldoc -l perl`;
-chomp $file;
+my $file = @ARGV ? shift(@ARGV) : `perldoc -l perl`;
+
+$file =~ s/\s+$//;
 
 {
-	my $in = PerlIO::Util->open('<:perlio', $file);
+	my $in = PerlIO::Util->open('<', $file);
 	local $/;
 	my $content = <$in>;
 

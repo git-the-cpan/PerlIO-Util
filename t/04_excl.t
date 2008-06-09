@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 12;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -31,6 +31,12 @@ ok $!{EEXIST}, '$! == EEXIST';
 
 close *IN;
 
+unlink $file;
+
+ok open(*IN, '>:excl :utf8 :creat', $file), "open with :excl :utf8 :creat";
+ok -e $file, "...exist";
+ok scalar(grep { $_ eq 'utf8' } *IN->get_layers()), "utf8 on";
+
 {
 	local $!;
 	use open IO => ':excl';
@@ -41,11 +47,6 @@ close *IN;
 }
 
 open IN, $file;
-
-ok !eval{
-	no warnings 'layer';
-	binmode *IN, ":excl";
-} && !$@, "Useless use of :excl";
 
 
 eval{

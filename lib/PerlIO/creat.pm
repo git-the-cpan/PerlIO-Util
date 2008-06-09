@@ -11,10 +11,12 @@ PerlIO::creat - Creates a file if it doesn't exist
 
 =head1 DESCRIPTION
 
-C<PerlIO::creat> appends O_CREAT to the open flags.
+C<PerlIO::creat> appends C<O_CREAT> to the open flags.
 
 When you'd like to create a file but not to truncate it, you can use 
 the C<:creat> layer with an open mode '<' or '+<'.
+
+This is a pseudo layer that doesn't be pushed on the layer stack.
 
 =head1 SEE ALSO
 

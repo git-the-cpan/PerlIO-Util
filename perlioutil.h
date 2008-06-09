@@ -31,6 +31,9 @@ PerlIOTee_teeout(pTHX_ const PerlIO* tee);
 void
 dump_perlio(pTHX_ PerlIO* f, int level);
 
+void
+print_layer_list(pTHX_ const PerlIO_list_t* const layers, int first, const int last);
+
 
 extern PERLIO_FUNCS_DECL(PerlIO_flock);
 extern PERLIO_FUNCS_DECL(PerlIO_creat);
