@@ -16,26 +16,24 @@ PerlIOFSE_get_fse(pTHX){
 	SV* fse = get_sv("PerlIO::Util::fse", GV_ADD | GV_ADDMULTI);
 
 	if (!SvOK(fse)) {
-		const char* def_fse = NULL;
-
 #if defined(WIN32) || defined(__CYGWIN__)
 		unsigned long codepage = GetACP();
-		char s[sizeof("cp0000")];
 		if(codepage != 0){
-				snprintf(s, sizeof(s), "cp%lu", codepage);
+			sv_setpvf(fse, "cp%lu", codepage);
 		}
-		def_fse = s;
 #endif
 
-		if(!def_fse && (!PL_tainting && PL_uid == PL_euid && PL_gid == PL_egid)){
-			def_fse = PerlEnv_getenv("PERLIO_FSE");
+		if(!PL_tainting && PL_uid == PL_euid && PL_gid == PL_egid){
+			const char* env_fse = PerlEnv_getenv("PERLIO_FSE");
+			if(env_fse && *env_fse){
+				sv_setpv(fse, env_fse);
+			}
 		}
 
-		if(!(def_fse && *def_fse != '\0')){
-			def_fse = DEFAULT_FSE;
+		if(!SvTRUE(fse)){
+			sv_setpvs(fse, DEFAULT_FSE);
 		}
-		sv_setpv(fse, def_fse);
-		PerlIO_debug("PerlIOFSE_initialize: encoding=%s", def_fse);
+		PerlIO_debug("PerlIOFSE_initialize: encoding=%" SVf , fse);
 	}
 
 	return fse;

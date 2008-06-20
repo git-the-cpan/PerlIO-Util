@@ -1,4 +1,7 @@
+package PerlIO::creat;
+use strict;
 require PerlIO::Util;
+1;
 __END__
 
 =encoding utf-8

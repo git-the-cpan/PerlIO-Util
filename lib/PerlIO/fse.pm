@@ -1,11 +1,7 @@
 package PerlIO::fse;
-
 use strict;
-
-use PerlIO::Util ();
-
+require PerlIO::Util;
 *import = \&PerlIO::Util::fse;
-
 1;
 __END__
 

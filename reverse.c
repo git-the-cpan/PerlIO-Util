@@ -40,7 +40,7 @@ PerlIOReverse_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 		return NULL;
 	}
 
-	f = tab->Open(aTHX_ tab, layers, (IV)0, mode, fd, imode, perm, f, narg, args);
+	f = tab->Open(aTHX_ tab, layers, (IV)1, mode, fd, imode, perm, f, narg, args);
 
 /*
 	if(LayerFetchSafe(layers, layers->cur-2)->kind & PERLIO_K_CANCRLF){

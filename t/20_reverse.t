@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 36;
+use Test::More tests => 37;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -13,6 +13,7 @@ my $f = make_files();
 my $r;
 
 ok open($r, '<:reverse', $f->{small}{file}), 'open:reverse (small-sized file)';
+ok scalar(grep { $_ eq 'reverse' } $r->get_layers), 'has :reverse';
 ok !$r->error, 'not error()';
 ok !eof($r), 'not eof()';
 

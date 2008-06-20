@@ -4,6 +4,10 @@ TODO:
 * improve documents
 * PerlIO::grep - Reads lines matching a pattern
 
+0.49_02 Fri Jun 20 17:28:42 2008
+	- fix a PerlIO::fse problem on Win32
+	- fix file arrangements
+
 0.49_01 Thu Jun 19 23:11:16 2008
 	- add PerlIO::Util::JA (Japanese document)
 	- add PerlIO::fse for filesystem encodings
