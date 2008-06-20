@@ -1,6 +1,8 @@
 require PerlIO::Util;
 __END__
 
+=encoding utf-8
+
 =head1 NAME
 
 PerlIO::excl - Creates a file only if it doesn't exist
@@ -26,9 +28,9 @@ L<perlfunc/sysopen>.
 
 =head1 AUTHOR
 
-Goro Fuji E<lt>gfuji (at) cpan.orgE<gt>
+Goro Fuji (藤 吾郎) E<lt>gfuji (at) cpan.orgE<gt>
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2008, Goro Fuji E<lt>gfuji (at) cpan.orgE<gt>. Some rights reserved.
 

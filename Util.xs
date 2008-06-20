@@ -5,6 +5,48 @@
 #include "perlioutil.h"
 
 
+PerlIO*
+PerlIOUtil_openn(pTHX_ PerlIO_funcs* force_tab, PerlIO_list_t* layers, IV n,
+		const char* mode, int fd, int imode, int perm,
+		PerlIO* f, int narg, SV** args){
+	PerlIO_funcs* tab = NULL;
+
+	IV i = n;
+
+	while(--i >= 0){ /* find a layer with Open() */
+		tab = LayerFetch(layers, i);
+		if(tab && tab->Open){
+			break;
+		}
+	}
+
+	if(force_tab){
+		tab = force_tab;
+	}
+
+	if(tab && tab->Open){
+		f = tab->Open(aTHX_ tab, layers, i,  mode,
+				fd, imode, perm, f, narg, args);
+
+		/* apply above layers
+		   e.g. [ :unix :perlio :utf8 :creat ]
+		                        ~~~~~        
+		*/
+
+		if(f && ++i < n){
+			if(PerlIO_apply_layera(aTHX_ f, mode, layers, i, n) != 0){
+				PerlIO_close(f);
+				f = NULL;
+			}
+		}
+
+	}
+	else{
+		SETERRNO(EINVAL, LIB_INVARG);
+	}
+
+	return f;
+}
 
 #define PutFlag(c) do{\
 		if(PerlIOBase(f)->flags & (PERLIO_F_##c)){\
@@ -69,6 +111,7 @@ BOOT:
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_tee));
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_dir));
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_reverse));
+	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_fse));
 
 void
 known_layers(...)
@@ -82,6 +125,17 @@ PPCODE:
 		PUSHs( sv_2mortal(name) );
 	}
 	XSRETURN(layers->cur);
+
+SV*
+fse(...)
+CODE:
+	RETVAL = PerlIOFSE_get_fse(aTHX);
+	SvREFCNT_inc_simple_void_NN(RETVAL);
+	if(items > 1){
+		sv_setsv(RETVAL, ST(1));
+	}
+OUTPUT:
+	RETVAL
 
 MODULE = PerlIO::Util		PACKAGE = IO::Handle
 
@@ -138,64 +192,5 @@ void
 _dump(f)
 	PerlIO* f
 CODE:
-	/* this function is only for debugging */
 	dump_perlio(aTHX_ f, 0);
 
-=for debug
-
-#define XF(c) do{\
-		if(flags & (PERLIO_F_##c)){\
-			n++;\
-			mXPUSHp( #c, sizeof( #c ) - 1 );\
-		}\
-	}while(0)
-
-
-void
-flags(filehandle)
-	PerlIO* filehandle
-PREINIT:
-	U32 flags;
-	IV n = 0;
-PPCODE:
-	if(!PerlIOValid(filehandle)) XSRETURN_EMPTY;
-
-	flags = PerlIOBase(filehandle)->flags;
-
-	XF(EOF);
-	XF(CANWRITE);
-	XF(CANREAD);
-	XF(ERROR);
-	XF(TRUNCATE);
-	XF(APPEND);
-	XF(CRLF);
-	XF(UTF8);
-	XF(UNBUF);
-	XF(WRBUF);
-	XF(RDBUF);
-	XF(LINEBUF);
-	XF(TEMP);
-	XF(OPEN);
-	XF(FASTGETS);
-	XF(TTY);
-	XF(NOTREG);
-
-	XSRETURN(n);
-
-
-=for debug
-
-void
-getarg(filehandle)
-	PerlIO* filehandle
-PREINIT:
-	PerlIO_funcs* tab;
-PPCODE:
-	tab = PerlIOBase(filehandle)->tab;
-	if(tab->Getarg){
-		ST(0) = tab->Getarg(aTHX_ filehandle, NULL, 0);
-		sv_2mortal(ST(0));
-		XSRETURN(1);
-	}
-
-=cut

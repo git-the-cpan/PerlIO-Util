@@ -1,8 +1,13 @@
 Revision history for PerlIO-Util
 
 TODO:
+* improve documents
 * PerlIO::grep - Reads lines matching a pattern
-* PerlIO::fse - Deals with File System Encodings
+
+0.49_01 Thu Jun 19 23:11:16 2008
+	- add PerlIO::Util::JA (Japanese document)
+	- add PerlIO::fse for filesystem encodings
+	- fix some bugs
 
 0.42 Sun Jun  8 23:37:12 2008
 	- fix examples of PerlIO::excl

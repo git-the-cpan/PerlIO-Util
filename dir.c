@@ -179,15 +179,14 @@ static IV
 PerlIODir_seek(pTHX_ PerlIO* f, Off_t offset, int whence){
 	switch(whence){
 	case SEEK_SET:
-		PerlDir_seek(Dirp(f), (long)offset);
+		PerlDir_seek(Dirp(f), offset);
 		break;
 
 	case SEEK_CUR:
 		if(offset != 0){
 			goto einval;
 		}
-		IOLflag(f, PERLIO_F_EOF);
-		return 0;
+		break;
 
 	case SEEK_END:
 		if(offset != 0){

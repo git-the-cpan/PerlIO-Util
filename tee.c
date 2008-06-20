@@ -47,6 +47,7 @@ PerlIO_layer_from_ref(pTHX_ SV *sv)
 } /* PerlIO_layer_from_ref() */
 
 
+
 typedef struct {
 	struct _PerlIO base; /* virtual table and flags */
 
@@ -60,7 +61,6 @@ static PerlIO*
 PerlIOTee_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 		  const char* mode, int fd, int imode, int perm,
 		  PerlIO* f, int narg, SV** args){
-	PerlIO_funcs* tab;
 	SV* arg;
 
 	if(!(PerlIOUnix_oflags(mode) & O_WRONLY)){ /* cannot open:tee for reading */
@@ -68,18 +68,13 @@ PerlIOTee_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 		return NULL;
 	}
 
-	tab = LayerFetchSafe(layers, n - 1);
+	f = PerlIOUtil_openn(aTHX_ NULL, layers, n, mode,
+				fd, imode, perm, f, 1, args);
 
-	if(!(tab && tab->Open)){
-		SETERRNO(EINVAL, LIB_INVARG);
-		return NULL;
-	}
-
-	f  = tab->Open(aTHX_ tab, layers, n - 1,  mode,
-				fd, imode, perm, f, 1, args); /* delegation */
 	if(!f){
 		return NULL;
 	}
+
 	if(narg > 1){
 		int i;
 		for(i = 1; i < narg; i++){
@@ -171,21 +166,12 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 			tab = PerlIO_layer_from_ref(aTHX_ SvRV(TeeArg(f)));
 		}
 
-		if(!tab){
-			tab = LayerFetch(layers, layers->cur-1);
-		}
-
 		if(!mode){
 			mode = "w";
 		}
 
-		assert(tab);
-
-		PerlIO_debug("PerlIOTee_pushed %s(%s)\n",
-			tab->name, SvPV_nolen(TeeArg(f)));
-
-		TeeOut(f) = tab->Open(aTHX_ tab, layers,
-			layers->cur-1, mode, -1, 0, 0, NULL, 1, &(TeeArg(f)));
+		TeeOut(f) = PerlIOUtil_openn(aTHX_ tab, layers,
+			layers->cur, mode, -1, 0, 0, NULL, 1, &(TeeArg(f)));
 
 		/*dump_perlio(aTHX_ TeeOut(f), 0);*/
 	}
@@ -195,7 +181,8 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 
 	PerlIOBase(f)->flags = PerlIOBase(next)->flags;
 
-	IOLflag_on(TeeOut(f), PerlIOBase(f)->flags & PERLIO_F_UTF8);
+	IOLflag_on(TeeOut(f),
+		PerlIOBase(f)->flags & (PERLIO_F_UTF8 | PERLIO_F_LINEBUF | PERLIO_F_UNBUF));
 
 	return 0;
 }
@@ -250,45 +237,35 @@ PerlIOTee_binmode(pTHX_ PerlIO* f){
 static SV*
 PerlIOTee_getarg(pTHX_ PerlIO* f, CLONE_PARAMS* param, int flags){
 	PERL_UNUSED_ARG(flags);
+
 	return PerlIO_sv_dup(aTHX_ TeeArg(f), param);
 }
 
 static SSize_t
 PerlIOTee_write(pTHX_ PerlIO* f, const void* vbuf, Size_t count){
-	PerlIO* next = PerlIONext(f);
-
 	if(PerlIO_write(TeeOut(f), vbuf, count) != (SSize_t)count){
-		Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to write to tee");
+		Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to write to tee-out");
 	}
 
-	return PerlIO_write(next, vbuf, count);
+	return PerlIO_write(PerlIONext(f), vbuf, count);
 }
 
 static IV
 PerlIOTee_flush(pTHX_ PerlIO* f){
-	PerlIO* next = PerlIONext(f);
-
 	if(PerlIO_flush(TeeOut(f)) != 0){
-		Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to flush to tee");
+		Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to flush tee-out");
 	}
 
-	return PerlIO_flush(next);
+	return PerlIO_flush(PerlIONext(f));
 }
 
 static IV
 PerlIOTee_seek(pTHX_ PerlIO* f, Off_t offset, int whence){
-	PerlIO* next = PerlIONext(f);
-	IV code;
-
-	if((code = PerlIOTee_flush(aTHX_ f)) == 0){
-		if(PerlIO_seek(TeeOut(f), offset, whence) != 0){
-			Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to seek to tee");
-		}
-
-		code = PerlIO_seek(next, offset, whence);
+	if(PerlIO_seek(TeeOut(f), offset, whence) != 0){
+		Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to seek tee-out");
 	}
 
-	return code;
+	return PerlIO_seek(PerlIONext(f), offset, whence);
 }
 
 static Off_t

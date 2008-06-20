@@ -1,6 +1,8 @@
 require PerlIO::Util;
 __END__
 
+=encoding utf-8
+
 =head1 NAME
 
 PerlIO::tee - Multiplex output layer
@@ -71,9 +73,9 @@ L<PerlIO::Util>.
 
 =head1 AUTHOR
 
-Goro Fuji E<lt>gfuji (at) cpan.orgE<gt>
+Goro Fuji (藤 吾郎) E<lt>gfuji (at) cpan.orgE<gt>
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2008, Goro Fuji E<lt>gfuji (at) cpan.orgE<gt>. Some rights reserved.
 

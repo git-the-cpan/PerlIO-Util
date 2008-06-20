@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.42';
+our $VERSION = '0.49_01';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -33,7 +33,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.42
+This document describes PerlIO::Util version 0.49_01
 
 =head1 SYNOPSIS
 
@@ -104,6 +104,12 @@ Reverse input iterator.
 
 See L<PerlIO::reverse>.
 
+=head2 :fse
+
+Mediation of encodings
+
+See L<PerlIO::fse>
+
 =head1 UTILITY METHODS
 
 =head2 PerlIO::Util-E<gt>open(I<mode>, I<args>)
@@ -125,14 +131,14 @@ See L<PerlIO/Querying the layers of filehandles>.
 
 =head2 I<FILEHANDLE>-E<gt>push_layer(I<layer> [ => I<arg>])
 
-Equivalent to C<binmode(*FILEHANDLE, ':layer(arg)')>, but accepts any type of
-I<arg>, e.g. a scalar reference to the C<:scalar> layer.
+Almost equivalent to C<binmode(FILEHANDLE, ':layer(arg)')>, but accepts
+any type of I<arg>, e.g. a scalar reference to the C<:scalar> layer.
 
 This method dies on fail. Otherwise, it returns I<FILEHANDLE>.
 
 =head2 I<FILEHANDLE>-E<gt>pop_layer( )
 
-Equivalent to C<binmode(*FILEHANDLE, ':pop')>. It removes a top level layer
+Equivalent to C<binmode(FILEHANDLE, ':pop')>. It removes a top level layer
 from I<FILEHANDLE>, but note that you cannot remove dummy layers such as
 C<:utf8> or C<:flock>.
 
@@ -153,7 +159,7 @@ L<http://rt.cpan.org/>.
 =head1 SEE ALSO
 
 L<PerlIO::flock>, L<PerlIO::creat>, L<PerlIO::excl>, L<PerlIO::tee>,
-L<PerlIO::dir>, L<PerlIO::reverse>.
+L<PerlIO::dir>, L<PerlIO::reverse>, L<PerlIO::fse>.
 
 L<PerlIO> for C<push_layer()> and C<pop_layer()>.
 
@@ -163,7 +169,7 @@ L<perliol> for implementation details.
 
 Goro Fuji (藤 吾郎) E<lt>gfuji (at) cpan.orgE<gt>
 
-=head1 LICENCE AND COPYRIGHT
+=head1 LICENSE AND COPYRIGHT
 
 Copyright (c) 2008, Goro Fuji E<lt>gfuji (at) cpan.orgE<gt>. Some rights reserved.
 

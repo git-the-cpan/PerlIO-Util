@@ -2,18 +2,27 @@
 use strict;
 use warnings;
 
-use Test::More tests => 29;
+use Test::More tests => 36;
 
 use FindBin qw($Bin);
 use File::Spec;
 use Fatal qw(:void open);
+use IO::Handle; # error()
 
 my $f = make_files();
 my $r;
 
 ok open($r, '<:reverse', $f->{small}{file}), 'open:reverse (small-sized file)';
+ok !$r->error, 'not error()';
+ok !eof($r), 'not eof()';
+
 is_deeply [<$r>], $f->{small}{contents}, 'readline:reverse';
-is scalar(<$r>), undef, 'readline:reverse (EOF)';
+ok !$r->error, 'not error()';
+ok eof($r), 'eof()';
+is scalar(<$r>), undef, 'readline:reverse (after EOF)';
+ok !$r->error, 'not error()';
+ok eof($r), 'eof()';
+cmp_ok fileno($r), '>', -1, 'fileno()';
 
 ok open($r, '<:reverse', $f->{normal}{file}), 'open:reverse (moderate-sized file)';
 
@@ -28,8 +37,8 @@ ok open($r, '<:reverse', $f->{nenl}{file}), 'open:reverse (file not ending newli
 is_deeply [<$r>], $f->{nenl}{contents}, 'readline:reverse';
 ok close($r), 'close:reverse';
 
-ok open($r, '<:reverse', $f->{onebyte}{file}), 'open:reverse (one byte file)';
-is_deeply [<$r>], $f->{onebyte}{contents}, 'readline:reverse';
+ok open($r, '<:reverse', $f->{zerobyte}{file}), 'open:reverse (zero byte file)';
+is_deeply [<$r>], $f->{zerobyte}{contents}, 'readline:reverse';
 ok close($r), 'close:reverse';
 
 ok open($r, '<:reverse', \"foo\nbar\nbaz\n"), 'open:scalar:reverse';
@@ -110,13 +119,11 @@ sub make_files{
 	$f{nenl}{contents} = $cts;
 
 	$cts = [];
-	my $f5 = File::Spec->catfile($Bin, 'util', 'revonebyte');
+	my $f5 = File::Spec->catfile($Bin, 'util', 'revzerobyte');
 	open $o, '>', $f5;
-	binmode $o;
-	print $o "\n";
-	@$cts = ("\n");
-	$f{onebyte}{file} = $f5;
-	$f{onebyte}{contents} = $cts;
+	@$cts = ();
+	$f{zerobyte}{file} = $f5;
+	$f{zerobyte}{contents} = $cts;
 
 
 

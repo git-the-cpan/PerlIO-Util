@@ -1,13 +1,16 @@
 .cvsignore
 Changes
 dir.c
+fse.c
 lib/PerlIO/creat.pm
 lib/PerlIO/dir.pm
 lib/PerlIO/excl.pm
 lib/PerlIO/flock.pm
+lib/PerlIO/fse.pm
 lib/PerlIO/reverse.pm
 lib/PerlIO/tee.pm
 lib/PerlIO/Util.pm
+lib/PerlIO/Util/JA.pm
 Makefile.PL
 MANIFEST			This list of files
 misc/dir_bench.pl
@@ -31,6 +34,7 @@ t/06_tee.t
 t/07_tee_binmode.t
 t/10_dir.t
 t/20_reverse.t
+t/30_fse.t
 t/99_pod.t
 t/util/.lock
 t/util/locktest.pl

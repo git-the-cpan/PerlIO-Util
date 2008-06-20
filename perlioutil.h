@@ -31,9 +31,17 @@ PerlIOTee_teeout(pTHX_ const PerlIO* tee);
 void
 dump_perlio(pTHX_ PerlIO* f, int level);
 
-void
-print_layer_list(pTHX_ const PerlIO_list_t* const layers, int first, const int last);
+PerlIO*
+PerlIOUtil_openn(pTHX_ PerlIO_funcs* tab, PerlIO_list_t* layers, IV n,
+		const char* mode, int fd, int imode, int perm,
+		PerlIO* f, int narg, SV** args);
 
+IV
+useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
+		PerlIO_funcs* tab);
+
+SV*
+PerlIOFSE_get_fse(pTHX);
 
 extern PERLIO_FUNCS_DECL(PerlIO_flock);
 extern PERLIO_FUNCS_DECL(PerlIO_creat);
@@ -41,6 +49,7 @@ extern PERLIO_FUNCS_DECL(PerlIO_excl);
 extern PERLIO_FUNCS_DECL(PerlIO_tee);
 extern PERLIO_FUNCS_DECL(PerlIO_dir);
 extern PERLIO_FUNCS_DECL(PerlIO_reverse);
+extern PERLIO_FUNCS_DECL(PerlIO_fse);
 
 
 #endif /*PERLIO_UTIL_H*/

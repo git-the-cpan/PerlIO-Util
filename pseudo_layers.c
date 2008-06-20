@@ -62,7 +62,7 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 	return ret;
 }
 
-static IV
+IV
 useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 		PerlIO_funcs* tab){
 	PERL_UNUSED_ARG(fp);
@@ -81,55 +81,27 @@ static PerlIO*
 PerlIOUtil_open_with_flags(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 		const char* mode, int fd, int imode, int perm,
 		PerlIO* f, int narg, SV** args, int flags){
-	PerlIO_funcs* tab = NULL;
 	char numeric_mode[5]; /* [I#]? [wra]\+? [tb] \0 */
-	IV i;
 
 	PERL_UNUSED_ARG(self);
 
 	if(mode[0] != IoTYPE_NUMERIC){
 		assert( sizeof(numeric_mode) > strlen(mode) );
-		numeric_mode[0] = IoTYPE_NUMERIC;
+
+		numeric_mode[0] = IoTYPE_NUMERIC; /* as sysopen() */
+
 		Copy(mode, &numeric_mode[1], strlen(mode), char*);
 		mode = &numeric_mode[0];
 	}
 
-	if(imode){
-		imode |= flags;
-	}
-	else{
-		imode = PerlIOUnix_oflags(mode) | flags;
+	if(!imode){
+		imode = PerlIOUnix_oflags(mode);
 		perm = 0666;
 	}
 
-	i = n;
-	while(--i >= 0){
-		tab = LayerFetch(layers, i);
-		if(tab && tab->Open){
-			break;
-		}
-	}
-
-	if(tab && tab->Open){
-		f = tab->Open(aTHX_ tab, layers, i,  mode,
-				fd, imode, perm, f, narg, args);
-
-		/* apply above layers
-		   e.g. [ :perlio :creat :utf8 :excl ]
-		                         ~~~~~        
-		*/
-
-		if(f && ++i < n){
-			/*print_layer_list(aTHX_ layers, i, n);*/
-			if(PerlIO_apply_layera(aTHX_ f, mode, layers, i, n) != 0){
-				PerlIO_close(f);
-				f = NULL;
-			}
-		}
-
-	}
-
-	return f;
+	return PerlIOUtil_openn(aTHX_ NULL, layers, n, mode,
+				fd, imode | flags,
+				perm, f, narg, args);
 }
 
 static PerlIO*

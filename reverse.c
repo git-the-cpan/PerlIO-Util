@@ -28,7 +28,7 @@ PerlIOReverse_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 		  PerlIO* f, int narg, SV** args){
 	PerlIO_funcs* tab;
 
-	tab = LayerFetchSafe(layers, 0); /* probably :unix */
+	tab = LayerFetchSafe(layers, 0); /* :unix or :stdio */
 
 	if(!(tab && tab->Open)){
 		SETERRNO(EINVAL, LIB_INVARG);
@@ -72,6 +72,7 @@ PerlIOReverse_pushed(pTHX_ PerlIO *f, const char *mode, SV *arg, PerlIO_funcs *t
 		SETERRNO(EINVAL, LIB_INVARG);
 		return -1;
 	}
+
 	if(!IOLflag(nx, PERLIO_F_CANREAD)){
 		SETERRNO(EINVAL, LIB_INVARG);
 		return -1;
@@ -80,6 +81,7 @@ PerlIOReverse_pushed(pTHX_ PerlIO *f, const char *mode, SV *arg, PerlIO_funcs *t
 	for(p = nx; PerlIOValid(p); p = PerlIONext(p)){
 		if(!(PerlIOBase(p)->tab->kind & PERLIO_K_RAW)
 			|| (PerlIOBase(p)->flags & PERLIO_F_CRLF)){
+
 			Perl_warner(aTHX_ packWARN(WARN_LAYER),
 				":%s is not a raw layer",
 				PerlIOBase(p)->tab->name);
@@ -130,7 +132,8 @@ PerlIOReverse_popped(pTHX_ PerlIO* f){
 #define write_bufsv(sv, msg) PerlIOReverse_debug_write_buf(aTHX_ SvPVX(sv), SvCUR(sv), msg)
 
 /* to pass -Wmissing-prototypes -Wunused-function */
-void PerlIOReverse_debug_write_buf(pTHX_ register const STDCHAR*, const Size_t count, const STDCHAR* msg);
+void
+PerlIOReverse_debug_write_buf(pTHX_ register const STDCHAR*, const Size_t count, const STDCHAR* msg);
 
 void
 PerlIOReverse_debug_write_buf(pTHX_ register const STDCHAR* src, const Size_t count, const STDCHAR* msg){
@@ -169,7 +172,7 @@ reverse_read(pTHX_ PerlIO* f, STDCHAR* vbuf, SSize_t count){
 	pos = PerlIO_tell(nx);
 	if(pos <= 0){
 		IOLflag_on(f, pos < 0 ? PERLIO_F_ERROR : PERLIO_F_EOF);
-		return -1;
+		return 0;
 	}
 
 	if(pos <= count){
@@ -221,7 +224,7 @@ PerlIOReverse_fill(pTHX_ PerlIO* f){
 	retry:
 	avail = reverse_read(aTHX_ f, buf, REV_BUFSIZ);
 
-	if(avail < 0){
+	if(avail <= 0){
 		IOLflag_on(f, avail < 0 ? PERLIO_F_ERROR : PERLIO_F_EOF);
 		return -1;
 	}
