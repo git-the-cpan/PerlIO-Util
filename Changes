@@ -4,6 +4,9 @@ TODO:
 * improve documents
 * PerlIO::grep - Reads lines matching a pattern
 
+0.49_03 Sun Jun 22 14:26:13 2008
+	 - fix reverse.t
+
 0.49_02 Fri Jun 20 17:28:42 2008
 	- fix a PerlIO::fse problem on Win32
 	- fix file arrangements

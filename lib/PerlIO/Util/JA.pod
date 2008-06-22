@@ -7,7 +7,7 @@ PerlIO::Util::JA - PerlIOに関するユーティリティ集
 
 =head1 VERSION
 
-本ドキュメントはC<PerlIO::Util>のバージョン0.49_02を説明する。
+本ドキュメントはC<PerlIO::Util>のバージョン0.49_03を説明する。
 
 =head1 SYNOPSIS
 

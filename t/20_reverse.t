@@ -6,7 +6,6 @@ use Test::More tests => 37;
 
 use FindBin qw($Bin);
 use File::Spec;
-use Fatal qw(:void open);
 use IO::Handle; # error()
 
 my $f = make_files();
@@ -76,7 +75,7 @@ sub make_files{
 
 	my $cts = [];
 	my $f1 = File::Spec->catfile($Bin, 'util', 'revlongline');
-	open my $o, '>', $f1;
+	open my $o, '>', $f1 or die "Cannot open $f1 for writing: $!";
 	binmode $o;
 	foreach my $s('x' .. 'z'){
 		my $c = $s x (BUFSIZ+100) . "\n";
@@ -88,7 +87,7 @@ sub make_files{
 
 	$cts = [];
 	my $f2 = File::Spec->catfile($Bin, 'util', 'revsmall');
-	open $o, '>', $f2;
+	open $o, '>', $f2 or die "Cannot open $f2 for writing: $!";
 	binmode $o;
 	foreach my $s('x' .. 'z'){
 		my $c = $s x (10) . "\n";
@@ -100,7 +99,7 @@ sub make_files{
 
 	$cts = [];
 	my $f3 = File::Spec->catfile($Bin, 'util', 'revnormal');
-	open $o, '>', $f3;
+	open $o, '>', $f3 or die "Cannot open $3f for writing: $!";
 	binmode $o;
 	foreach my $s(1000 .. 1500){
 		my $c = $s . "\n";
@@ -112,7 +111,7 @@ sub make_files{
 
 	$cts = [];
 	my $f4 = File::Spec->catfile($Bin, 'util', 'revnotendnewline');
-	open $o, '>', $f4;
+	open $o, '>', $f4 or die "Cannot open $f4 for writing: $!";
 	binmode $o;
 	print $o "foo\nbar\nbaz";
 	@$cts = ("bazbar\n", "foo\n");
@@ -121,7 +120,7 @@ sub make_files{
 
 	$cts = [];
 	my $f5 = File::Spec->catfile($Bin, 'util', 'revzerobyte');
-	open $o, '>', $f5;
+	open $o, '>', $f5 or die "Cannot open $f5 for writing: $!";
 	@$cts = ();
 	$f{zerobyte}{file} = $f5;
 	$f{zerobyte}{contents} = $cts;
