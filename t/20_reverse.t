@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 37;
+use Test::More tests => 43;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -54,6 +54,25 @@ $r->push_layer('reverse');
 is scalar(<$r>), $f->{normal}{contents}[-1], 'backward readline';
 $r->pop_layer();
 is scalar(<$r>), $f->{normal}{contents}[-1], 'normal readline again';
+
+ok open($r, '<:reverse', $f->{normal}{file}), 'open:reverse';
+my $s   = <$r>;
+
+my $pos = tell $r;
+
+is $pos, length($s), 'tell';
+$r->flush();
+is tell($r), $pos, 'flush';
+
+seek $r, 0, 0;
+is scalar(<$r>), $f->{normal}{contents}[0], 'rewind';
+seek $r, $pos, 0;
+is scalar(<$r>), $f->{normal}{contents}[1], 'seek';
+
+seek $r, 0, 0;
+$r->push_layer('reverse');
+is_deeply [<$r>], [ readline( PerlIO::Util->open('<', $f->{normal}{file}) ) ], ':reverse:reverse makes no sense :-)';
+
 
 # Errors
 

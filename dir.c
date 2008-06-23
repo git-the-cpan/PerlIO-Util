@@ -70,7 +70,7 @@ PerlIODir_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 		return -1;
 	}
 
-	Dirp(f) = PerlDir_open(SvPV_nolen(arg));
+	Dirp(f) = PerlDir_open(SvPV_nolen_const(arg));
 	if(!Dirp(f)){
 		return -1;
 	}

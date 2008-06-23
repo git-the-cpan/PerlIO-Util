@@ -6,14 +6,18 @@ SYNOPSIS
 
 	use PerlIO::Util;
 
-	# to create $file if needed, and call flock($in, LOCK_EX)
+	# to create $file if needed, and then call flock($in, LOCK_EX)
 	my $in = PerlIO::Util->open('+<:creat :flock', $file); 
 
 	# to multiplex output
 	STDERR->push_layer(tee => ">> $err_log");
 
 	# to read lines backward
-	my $rin = PerlIO::Util->open('<:reverse', $file);
+	my $in = PerlIO::Util->open('<:reverse', $file);
+
+	# to open file encoded to filesystem encoding
+	# (need to set PERLIO_FSE unless using Win32)
+	my $in = PerlIO::Util->open('<:fse', $file);
 
 INSTALLATION
 

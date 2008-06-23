@@ -15,27 +15,38 @@ PerlIO::fse - Deals with Filesystem Encoding
 
 	# for Windows (including Cygwin)
 
-	open my $io,  '<:fse', $utf8_filename;
+	open my $io,  '<:fse', $filename;
 
 	# Other systems
-	$ENV{PERLIO_FSE} = 'EUC-JP'; # actually, UTF-8 by default
+	$ENV{PERLIO_FSE} = $encoding; # UTF-8 is default
 	# or
-	use PerlIO::fse 'EUC-JP';
+	use PerlIO::fse $encoding;
 
-	open my $io, '<:fse', $utf8_filename;
-
-	# or
-
-	open my $io, "<:fse($encoding)", $utf8_filename;
+	open my $io, '<:fse', $filename;
 
 
 =head1 DESCRIPTION
 
-C<PerlIO::fse> mediates encodings between Perl and Filesystem.
+C<PerlIO::fse> mediates encodings between Perl and Filesystem. It converts
+filenames into native forms if the filenames are utf8-flagged. Otherwise,
+C<PerlIO::fse> will do nothing, looking on it as native forms.
+
+C<PerlIO::fse> gets an encoding from C<$ENV{PERLIO_FSE}>, and if defined, it
+will be used. Or you can C<use PerlIO::fse $encoding> directive to set C<fse>.
+
+If you use Windows (or Cygwin), you need not to set C<$ENV{PERLIO_FSE}>.
+However, if C<$ENV{PERLIO_FSE}> is set, C<PerlIO::fse> will give it
+priority.
+
+When there is no encoding available, C<UTF-8> will be used.
+
+This layer uses C<Encode> internally to convert encodings.
 
 =head1 SEE ALSO
 
 L<PerlIO::Util>.
+
+L<Encode>.
 
 =head1 AUTHOR
 

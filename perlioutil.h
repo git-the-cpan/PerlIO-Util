@@ -28,7 +28,7 @@
 PerlIO*
 PerlIOTee_teeout(pTHX_ const PerlIO* tee);
 
-void
+SV*
 dump_perlio(pTHX_ PerlIO* f, int level);
 
 PerlIO*

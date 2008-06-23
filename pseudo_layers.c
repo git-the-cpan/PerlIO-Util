@@ -27,7 +27,7 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 	lock_mode = IOLflag(fp, PERLIO_F_CANWRITE) ? LOCK_EX : LOCK_SH;
 
 	if(arg && SvOK(arg)){
-		const char* blocking = SvPV_nolen(arg);
+		const char* blocking = SvPV_nolen_const(arg);
 
 		if(strEQ(blocking, "blocking")){
 			/* noop */

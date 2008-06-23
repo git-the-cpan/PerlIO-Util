@@ -28,25 +28,16 @@ PerlIOReverse_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 		  PerlIO* f, int narg, SV** args){
 	PerlIO_funcs* tab;
 
-	tab = LayerFetchSafe(layers, 0); /* :unix or :stdio */
+	assert(layers->cur > 0);
+	tab = LayerFetch(layers, 0); /* :unix, :stdio, or :scalar */
 
-	if(!(tab && tab->Open)){
-		SETERRNO(EINVAL, LIB_INVARG);
-		return NULL;
-	}
-
-	if( PerlIOUnix_oflags(mode) & (O_WRONLY | O_RDWR) ){
+	if(!(tab && tab->Open) || PerlIOUnix_oflags(mode) & (O_WRONLY | O_RDWR) ){
 		SETERRNO(EINVAL, LIB_INVARG);
 		return NULL;
 	}
 
 	f = tab->Open(aTHX_ tab, layers, (IV)1, mode, fd, imode, perm, f, narg, args);
 
-/*
-	if(LayerFetchSafe(layers, layers->cur-2)->kind & PERLIO_K_CANCRLF){
-		// to do something?
-	}
-*/
 	if(f){
 		if(!PerlIO_push(aTHX_ f, self, mode, PerlIOArg)){
 			PerlIO_close(f);
@@ -68,11 +59,6 @@ PerlIOReverse_pushed(pTHX_ PerlIO *f, const char *mode, SV *arg, PerlIO_funcs *t
 		return -1;
 	}
 
-	if(IOLflag(nx, PERLIO_F_TTY)){
-		SETERRNO(EINVAL, LIB_INVARG);
-		return -1;
-	}
-
 	if(!IOLflag(nx, PERLIO_F_CANREAD)){
 		SETERRNO(EINVAL, LIB_INVARG);
 		return -1;
@@ -89,16 +75,11 @@ PerlIOReverse_pushed(pTHX_ PerlIO *f, const char *mode, SV *arg, PerlIO_funcs *t
 			return -1;
 		}
 	}
-/*
-	if(!PerlIO_binmode(aTHX_ nx, '<', O_BINARY, Nullch)){
-		SETERRNO(EINVAL, LIB_INVARG);
-		return -1;
-	}
-*/
+
 	pos = PerlIO_tell(nx);
 	if(pos <= 0){
 		if(pos < 0 || PerlIO_seek(nx, (Off_t)0, SEEK_END) < 0){
-			return -1;
+			return pos;
 		}
 	}
 	ior = IOR(f);
@@ -163,16 +144,28 @@ PerlIOReverse_debug_write_buf(pTHX_ register const STDCHAR* src, const Size_t co
 	Safefree(buf);
 }
 
+static IV
+PerlIOReverse_flush(pTHX_ PerlIO* f){
+	PerlIOReverse* ior = IOR(f);
+	PerlIO* nx = PerlIONext(f);
+	Off_t offset = (ior->end - ior->ptr) + SvCUR(ior->segsv);
+	SvCUR(ior->bufsv) = SvCUR(ior->segsv) = 0;
+	ior->end = ior->ptr = SvPVX(ior->bufsv);
+
+	IOLflag_off(f, PERLIO_F_RDBUF);
+	return PerlIO_seek(nx, offset , SEEK_CUR);
+}
 
 static SSize_t
 reverse_read(pTHX_ PerlIO* f, STDCHAR* vbuf, SSize_t count){
 	PerlIO* nx = PerlIONext(f);
+	SSize_t avail = 0;
 	Off_t pos;
 
 	pos = PerlIO_tell(nx);
 	if(pos <= 0){
 		IOLflag_on(f, pos < 0 ? PERLIO_F_ERROR : PERLIO_F_EOF);
-		return 0;
+		return pos;
 	}
 
 	if(pos <= count){
@@ -180,7 +173,6 @@ reverse_read(pTHX_ PerlIO* f, STDCHAR* vbuf, SSize_t count){
 			IOLflag_on(f, PERLIO_F_ERROR);
 			return -1;
 		}
-		IOLflag_on(f, PERLIO_F_EOF);
 
 		count = (SSize_t)pos;
 	}
@@ -191,16 +183,23 @@ reverse_read(pTHX_ PerlIO* f, STDCHAR* vbuf, SSize_t count){
 		}
 	}
 
-	count = PerlIO_read(nx, vbuf, (Size_t)count);
-
-	if(count > 0){
-		if(PerlIO_seek(nx, (Off_t)-count, SEEK_CUR) < 0){
-			return -1;
+	while(avail < count){
+		SSize_t s = PerlIO_read(nx, vbuf+avail, (Size_t)(count - avail));
+		if(s > 0){
+			avail += s;
+		}
+		else{
+			break;
 		}
 	}
 
-	return count;
+	if(PerlIO_seek(nx, (Off_t)-avail, SEEK_CUR) < 0){
+		return -1;
+	}
+
+	return avail;
 }
+
 
 
 static IV
@@ -217,8 +216,6 @@ PerlIOReverse_fill(pTHX_ PerlIO* f){
 	STDCHAR* end;
 	STDCHAR* start;
 
-	IOLflag_off(f, PERLIO_F_RDBUF);
-
 	SvCUR(bufsv) = 0;
 
 	retry:
@@ -232,7 +229,7 @@ PerlIOReverse_fill(pTHX_ PerlIO* f){
 	start = ptr = buf;
 	end = buf + avail;
 
-	if(!IOLflag(f, PERLIO_F_EOF)){
+	if(avail == REV_BUFSIZ){ /* not EOF */
 		while(ptr < end){
 			if(*(ptr++) == '\n') break;
 		}
@@ -246,7 +243,7 @@ PerlIOReverse_fill(pTHX_ PerlIO* f){
 	}
 
 
-	/* solve old segment */
+	/* solve previous segment */
 	if(SvCUR(segsv) > 0){
 		/* buf[oo\nbar\nba]
 		       ^   ^    ^
@@ -329,8 +326,40 @@ PerlIOReverse_set_ptrcnt(pTHX_ PerlIO* f, STDCHAR* ptr, SSize_t cnt){
 	PERL_UNUSED_ARG(cnt);
 
 	IOR(f)->ptr  = ptr;
+}
 
-	assert( PerlIO_get_cnt(f) == cnt );
+static IV
+PerlIOReverse_seek(pTHX_ PerlIO* f, Off_t offset, int whence){
+	PerlIO* nx = PerlIONext(f);
+
+	PerlIOReverse_flush(aTHX_ f);
+	switch(whence){
+		case SEEK_SET:
+			whence = SEEK_END;
+			break;
+		case SEEK_END:
+			whence = SEEK_SET;
+			break;
+	}
+	return PerlIO_seek(nx, -offset, whence);
+}
+static Off_t
+PerlIOReverse_tell(pTHX_ PerlIO* f){
+	PerlIO* nx = PerlIONext(f);
+	Off_t current = PerlIO_tell(nx);
+	Off_t end;
+
+	if(PerlIO_seek(nx, (Off_t)0, SEEK_END) < 0){
+		return -1;
+	}
+	end = PerlIO_tell(nx);
+	if(PerlIO_seek(nx, current, SEEK_SET) < 0){
+		return -1;
+	}
+
+	/*warn("end=%d, current=%d, cnt=%d, segsv=%d", (int)end, (int)current, (int)(IOR(f)->end-IOR(f)->ptr), (int)SvCUR(IOR(f)->segsv));*/
+
+	return (end - current) - ((IOR(f)->end - IOR(f)->ptr) + SvCUR(IOR(f)->segsv));
 }
 
 PERLIO_FUNCS_DECL(PerlIO_reverse) = {
@@ -348,10 +377,10 @@ PERLIO_FUNCS_DECL(PerlIO_reverse) = {
 	NULL, /* read */
 	NULL, /* unread */
 	NULL, /* write */
-	NULL, /* seek */
-	NULL, /* tell */
+	PerlIOReverse_seek,
+	PerlIOReverse_tell,
 	NULL, /* close */
-	NULL, /* flush */
+	PerlIOReverse_flush,
 	PerlIOReverse_fill,
 	NULL, /* eof */
 	NULL, /* error */

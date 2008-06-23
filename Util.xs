@@ -50,24 +50,26 @@ PerlIOUtil_openn(pTHX_ PerlIO_funcs* force_tab, PerlIO_list_t* layers, IV n,
 
 #define PutFlag(c) do{\
 		if(PerlIOBase(f)->flags & (PERLIO_F_##c)){\
-			printf(" %s", #c);\
+			sv_catpvf(sv, " %s", #c);\
 		}\
 	}while(0)
 
-void
+SV*
 dump_perlio(pTHX_ PerlIO* f, int level){
+	SV* sv = newSVpv("", 0);
+
 	if(!PerlIOValid(f)){
 		int i;
-		for(i = 0; i < level; i++) printf("\t");
+		for(i = 0; i < level; i++) sv_catpvs(sv, "\t");
 
-		printf("(Invalid filehandle)");
+		sv_catpvs(sv, "(Invalid filehandle)\n");
 	}
 
 	while(PerlIOValid(f)){
 		int i;
-		for(i = 0; i < level; i++) printf("\t");
+		for(i = 0; i < level; i++) sv_catpv(sv, "\t");
 
-		printf("%p:%s(%d)",
+		sv_catpvf(sv, "0x%p:%s(%d)",
 			f, PerlIOBase(f)->tab->name,
 			(int)PerlIO_fileno(f));
 		PutFlag(EOF);
@@ -87,16 +89,20 @@ dump_perlio(pTHX_ PerlIO* f, int level){
 		PutFlag(FASTGETS);
 		PutFlag(TTY);
 		PutFlag(NOTREG);
-		printf("\n");
+		sv_catpvs(sv, "\n");
 
 		if( strEQ(PerlIOBase(f)->tab->name, "tee") ){
 			PerlIO* teeout = PerlIOTee_teeout(aTHX_ f);
+			SV* t = dump_perlio(aTHX_ teeout, level+1);
 
-			dump_perlio(aTHX_ teeout, level+1);
+			sv_catsv(sv, t);
+			SvREFCNT_dec(t);
 		}
 
 		f = PerlIONext(f);
 	}
+
+	return sv;
 }
 
 
@@ -188,9 +194,11 @@ PPCODE:
 		XSRETURN_PV(popped_layer);
 	}
 
-void
+SV*
 _dump(f)
 	PerlIO* f
 CODE:
-	dump_perlio(aTHX_ f, 0);
+	RETVAL = dump_perlio(aTHX_ f, 0);
+OUTPUT:
+	RETVAL
 
