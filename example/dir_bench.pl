@@ -19,7 +19,7 @@ print "read: $count\n";
 cmpthese timethese -1 => {
 	layer => sub{
 		open my $dir, '<:dir', $perlbin or die $!;
-		1 while <$dir>;
+		chomp while <$dir>;
 	},
 	core => sub{
 		opendir my $dir, $perlbin or die $!;

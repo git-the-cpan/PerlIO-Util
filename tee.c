@@ -244,7 +244,9 @@ PerlIOTee_getarg(pTHX_ PerlIO* f, CLONE_PARAMS* param, int flags){
 static SSize_t
 PerlIOTee_write(pTHX_ PerlIO* f, const void* vbuf, Size_t count){
 	if(PerlIO_write(TeeOut(f), vbuf, count) != (SSize_t)count){
-		Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to write to tee-out");
+		if(ckWARN(WARN_IO)){
+			Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to write to tee-out");
+		}
 	}
 
 	return PerlIO_write(PerlIONext(f), vbuf, count);
@@ -253,7 +255,9 @@ PerlIOTee_write(pTHX_ PerlIO* f, const void* vbuf, Size_t count){
 static IV
 PerlIOTee_flush(pTHX_ PerlIO* f){
 	if(PerlIO_flush(TeeOut(f)) != 0){
-		Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to flush tee-out");
+		if(ckWARN(WARN_IO)){
+			Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to flush tee-out");
+		}
 	}
 
 	return PerlIO_flush(PerlIONext(f));
@@ -262,7 +266,9 @@ PerlIOTee_flush(pTHX_ PerlIO* f){
 static IV
 PerlIOTee_seek(pTHX_ PerlIO* f, Off_t offset, int whence){
 	if(PerlIO_seek(TeeOut(f), offset, whence) != 0){
-		Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to seek tee-out");
+		if(ckWARN(WARN_IO)){
+			Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to seek tee-out");
+		}
 	}
 
 	return PerlIO_seek(PerlIONext(f), offset, whence);

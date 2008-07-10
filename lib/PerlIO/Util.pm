@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.50';
+our $VERSION = '0.51';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -33,7 +33,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.50
+This document describes PerlIO::Util version 0.51
 
 =head1 SYNOPSIS
 
@@ -106,13 +106,13 @@ See L<PerlIO::reverse>.
 
 =head2 :fse
 
-Mediation of encodings
+Mediation of filesystem encoding.
 
-See L<PerlIO::fse>
+See L<PerlIO::fse>.
 
 =head1 UTILITY METHODS
 
-=head2 PerlIO::Util-E<gt>open(I<mode>, I<args>)
+=head2 PerlIO::Util->open(I<mode>, I<args>)
 
 Calls built-in C<open()>, and returns an anonymus C<IO::Handle> instance.
 It dies on fail.
@@ -123,20 +123,20 @@ Unlike Perl's C<open()> (nor C<IO::File>'s), I<mode> is always required.
 
 Returns the known layer names.
 
-=head2 I<FILEHANDLE>-E<gt>get_layers( )
+=head2 I<FILEHANDLE>->get_layers( )
 
 Returns the names of the PerlIO layers on I<FILEHANDLE>.
 
 See L<PerlIO/Querying the layers of filehandles>.
 
-=head2 I<FILEHANDLE>-E<gt>push_layer(I<layer> [ => I<arg>])
+=head2 I<FILEHANDLE>->push_layer(I<layer> [ => I<arg>])
 
 Almost equivalent to C<binmode(FILEHANDLE, ':layer(arg)')>, but accepts
 any type of I<arg>, e.g. a scalar reference to the C<:scalar> layer.
 
 This method dies on fail. Otherwise, it returns I<FILEHANDLE>.
 
-=head2 I<FILEHANDLE>-E<gt>pop_layer( )
+=head2 I<FILEHANDLE>->pop_layer( )
 
 Equivalent to C<binmode(FILEHANDLE, ':pop')>. It removes a top level layer
 from I<FILEHANDLE>, but note that you cannot remove dummy layers such as
@@ -164,6 +164,10 @@ L<PerlIO::dir>, L<PerlIO::reverse>, L<PerlIO::fse>.
 L<PerlIO> for C<push_layer()> and C<pop_layer()>.
 
 L<perliol> for implementation details.
+
+L<perlfunc/open>.
+
+L<perlopentut>.
 
 =head1 AUTHOR
 

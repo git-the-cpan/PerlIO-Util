@@ -7,7 +7,7 @@ PerlIO::Util::JA - PerlIOに関するユーティリティ集
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.50
+This document describes PerlIO::Util version 0.51
 
 =head1 SYNOPSIS
 
@@ -44,43 +44,45 @@ C<PerlIO::Util>はPerlIOに関するユーティリティレイヤとユーテ�
 
 =head2 :flock 
 
-C<flock()>に対する簡易なインターフェイスを提供する
+C<flock()>に対する簡易なインターフェイスを提供する。
 
 See L<PerlIO::flock>.
 
 =head2 :creat
 
-C<Fcntl>を用いずに，O_CREATを使用する
+C<Fcntl>を用いずに，O_CREATを使用する。
 
 See L<PerlIO::creat>.
 
 =head2 :excl
 
-C<Fcntl>を用いずに，O_EXCLを使用する
+C<Fcntl>を用いずに，O_EXCLを使用する。
 
 See L<PerlIO::excl>.
 
 =head2 :tee
 
-複数のファイルハンドルに同時に出力する
+複数のファイルハンドルに同時に出力する。
 
 See L<PerlIO::tee>.
 
 =head2 :dir
 
-PerlIOインターフェイスでディレクトリを読む
+PerlIOインターフェイスでディレクトリを読む。
 
 See L<PerlIO::dir>.
 
 =head2 :reverse
 
-ファイルを逆順に読む
+ファイルを逆順に読む。
 
 See L<PerlIO::reverse>.
 
 =head2 :fse
 
-ファイルシステムエンコーディングを扱う
+ファイルシステムエンコーディングを扱う。
+
+See L<PerlIO::fse>.
 
 =head1 UTILITY METHODS
 
@@ -89,8 +91,8 @@ See L<PerlIO::reverse>.
 ビルトイン関数のC<open()>を呼び出し，C<IO::Handle>オブジェクトを返す。
 C<open()>に失敗すると致命的エラーとなる。
 
-PerlのC<open()>と異なり（またC<IO::File>のC<open()>とも異なり），I<mode>は
-常に必須である。
+PerlのC<open()>と異なり（またC<IO::File>のC<new()>とも異なり），I<mode>は
+常に必須である。つまり，基本的にはC<IO::File>のC<new()>の代替だが，常にB<3-arg open>を強要し，失敗すると致命的エラーとなる点でC<IO::File>のC<new()>と異なる。
 
 =head2 PerlIO::Util->known_layers( )
 
@@ -137,6 +139,10 @@ L<PerlIO::dir>, L<PerlIO::reverse>, L<PerlIO::fse>.
 L<PerlIO> for C<push_layer()> and C<pop_layer()>.
 
 L<perliol> for implementation details.
+
+L<perlfunc/open>.
+
+L<perlopentut>.
 
 =head1 AUTHOR
 

@@ -4,11 +4,16 @@ TODO:
 * improve documents
 * PerlIO::grep - Reads lines matching a pattern
 
+0.51 Thu Jul 10 15:48:19 2008
+	- add t/99_pod-coverage.t
+	- add some tests
+	- skip fse test when non-cp932 environment
+
 0.50 Mon Jun 23 18:17:36 2008
 	- add PerlIO::fse for filesystem encodings
 	- add PerlIO::Util::JA (Japanese document)
 	- change :reverse to be seekable
-	- change :reverse to be robust
+	- change :reverse to be more robust
 	- update ppport.h
 	- fix some bugs
 

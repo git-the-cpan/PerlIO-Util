@@ -84,8 +84,6 @@ PerlIODir_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 
 static IV
 PerlIODir_popped(pTHX_ PerlIO* f){
-	PerlIO_debug("PerlIODir_popped: closedir(%p)\n", Dirp(f));
-
 	if(Dirp(f)){
 #ifdef VOID_CLOSEDIR
 		PerlDir_close(Dirp(f));

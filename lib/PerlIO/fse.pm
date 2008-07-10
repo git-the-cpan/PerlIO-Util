@@ -29,12 +29,13 @@ PerlIO::fse - Deals with Filesystem Encoding
 
 C<PerlIO::fse> mediates encodings between Perl and Filesystem. It converts
 filenames into native forms if the filenames are utf8-flagged. Otherwise,
-C<PerlIO::fse> will do nothing, looking on it as native forms.
+C<PerlIO::fse> does nothing, looking on it as native forms.
 
 C<PerlIO::fse> gets an encoding from C<$ENV{PERLIO_FSE}>, and if defined, it
 will be used. Or you can C<use PerlIO::fse $encoding> directive to set C<fse>.
 
-If you use Windows (or Cygwin), you need not to set C<$ENV{PERLIO_FSE}>.
+If you use Windows (or Cygwin), you need not to set C<$ENV{PERLIO_FSE}>
+because the current codepage is detected automatically.
 However, if C<$ENV{PERLIO_FSE}> is set, C<PerlIO::fse> will give it
 priority.
 

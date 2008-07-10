@@ -2,11 +2,12 @@
 use strict;
 use warnings;
 
-use Test::More tests => 43;
+use Test::More tests => 52;
 
 use FindBin qw($Bin);
 use File::Spec;
 use IO::Handle; # error()
+use Fcntl qw(SEEK_SET SEEK_CUR SEEK_END);
 
 my $f = make_files();
 my $r;
@@ -61,15 +62,25 @@ my $s   = <$r>;
 my $pos = tell $r;
 
 is $pos, length($s), 'tell';
-$r->flush();
-is tell($r), $pos, 'flush';
 
-seek $r, 0, 0;
-is scalar(<$r>), $f->{normal}{contents}[0], 'rewind';
-seek $r, $pos, 0;
-is scalar(<$r>), $f->{normal}{contents}[1], 'seek';
+like $r->_dump, qr/RDBUF/, 'with reading buffer';
+ok seek($r, 0, SEEK_SET), 'rewind';
+unlike $r->_dump, qr/RDBUF/, 'without reading buffer';
+is scalar(<$r>), $f->{normal}{contents}[0], 'readline after rewind';
+seek $r, $pos, SEEK_SET;
+is scalar(<$r>), $f->{normal}{contents}[1], 'SEEK_SET';
 
-seek $r, 0, 0;
+seek $r, 0, SEEK_END;
+is scalar(<$r>), undef, 'SEEK_END';
+$pos = tell $r;
+
+seek $r, -length($f->{normal}{contents}[-1]), SEEK_CUR;
+
+is scalar(<$r>), $f->{normal}{contents}[-1], 'SEEK_CUR';
+
+is tell($r), $pos, 'tell';
+
+seek $r, 0, SEEK_SET;
 $r->push_layer('reverse');
 is_deeply [<$r>], [ readline( PerlIO::Util->open('<', $f->{normal}{file}) ) ], ':reverse:reverse makes no sense :-)';
 
@@ -87,6 +98,20 @@ SKIP:{
 	ok !binmode($r, ':reverse'), ':reverse to invalid filehandle';
 }
 ok !binmode(STDOUT, ':reverse'), ':reverse to output filehandle';
+
+ok open($r, '-| :raw', $^X, '-e', '"print qq{foo\nbar\n}"'), 'open pipe';
+eval{
+	$r->push_layer('reverse');
+};
+ok $@, ':reverse to pipe -> fail';
+ok close($r), 'close pipe';
+
+eval{
+	no warnings 'layer';
+	my $io = PerlIO::Util->open('<:crlf', $f->{normal}{file});
+	$io->push_layer('reverse');
+};
+ok $@, 'with a no-raw layer';
 
 sub make_files{
 	my %f;

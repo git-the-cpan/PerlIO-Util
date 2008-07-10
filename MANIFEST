@@ -35,6 +35,7 @@ t/07_tee_binmode.t
 t/10_dir.t
 t/20_reverse.t
 t/30_fse.t
+t/99_pod-coverage.t
 t/99_pod.t
 t/util/.lock
 t/util/locktest.pl

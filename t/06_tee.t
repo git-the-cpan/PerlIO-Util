@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 58;
+use Test::More tests => 63;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -177,10 +177,6 @@ close $tee;
 is slurp($file), "foo.bar", "print to duplicating handle";
 
 
-ok unlink($file),  "unlink $file";
-ok unlink($file2), "unlink $file2";
-ok unlink($file3), "unlink $file3";
-
 # Error Handling
 
 ok !eval{ open $tee, '<:tee', \($x, $y) }, "cannot tee for reading";
@@ -197,3 +193,43 @@ ok !eval{
 	STDOUT->push_layer(tee => \*STDIN);
 }, "Cannot tee for reading";
 is $!+0, EBADF, "Bad file descriptor";
+
+eval{
+	PerlIO::Util->open('>:tee', File::Spec->devnull, File::Spec->curdir);
+};
+ok $@, 'cannot open';
+
+my $a = PerlIO::Util->open('>', $file);
+$tee = PerlIO::Util->open('>:tee', $file2, $a);
+
+print $tee "foo";
+
+close $a;
+
+eval{
+	use warnings FATAL => 'all';
+	$tee->flush();
+};
+ok $@, 'failed to flush';
+
+eval{
+	use warnings FATAL => 'all';
+	print $tee $a;
+};
+ok $@, 'failed to write';
+eval{
+	use warnings FATAL => 'all';
+	seek $tee, 0, 0;
+};
+ok $@, 'failed to seek';
+
+ok do{
+	no warnings;
+	close $tee;
+}, 'close';
+
+## cleanup
+
+ok unlink($file),  "unlink $file";
+ok unlink($file2), "unlink $file2";
+ok unlink($file3), "unlink $file3";

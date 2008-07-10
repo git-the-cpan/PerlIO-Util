@@ -5,13 +5,12 @@ use Test::More;
 
 use PerlIO::Util;
 BEGIN{
-	if(PerlIO::Util->fse ne 'UTF-8' or defined($ENV{PERLIO_FSE})){
-		plan tests => 10;
-	}
-	else{
-		plan skip_all => 'PERLIO_FSE not set';
+	if(PerlIO::Util->fse ne 'cp932'){
+		plan skip_all => 'PerlIO FSE tests are only for CP932 environment';
 		exit;
 	}
+
+	plan tests => 10;
 }
 
 use FindBin qw($Bin);

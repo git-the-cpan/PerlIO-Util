@@ -56,21 +56,21 @@ PerlIOUtil_openn(pTHX_ PerlIO_funcs* force_tab, PerlIO_list_t* layers, IV n,
 
 SV*
 dump_perlio(pTHX_ PerlIO* f, int level){
-	SV* sv = newSVpv("", 0);
+	SV* sv = newSVpvf("PerlIO 0x%p\n", f);
 
 	if(!PerlIOValid(f)){
 		int i;
-		for(i = 0; i < level; i++) sv_catpvs(sv, "\t");
+		for(i = 0; i <= level; i++) sv_catpvs(sv, "  ");
 
 		sv_catpvs(sv, "(Invalid filehandle)\n");
 	}
 
 	while(PerlIOValid(f)){
 		int i;
-		for(i = 0; i < level; i++) sv_catpv(sv, "\t");
+		for(i = 0; i <= level; i++) sv_catpv(sv, "  ");
 
 		sv_catpvf(sv, "0x%p:%s(%d)",
-			f, PerlIOBase(f)->tab->name,
+			*f, PerlIOBase(f)->tab->name,
 			(int)PerlIO_fileno(f));
 		PutFlag(EOF);
 		PutFlag(CANWRITE);
@@ -143,6 +143,7 @@ CODE:
 OUTPUT:
 	RETVAL
 
+
 MODULE = PerlIO::Util		PACKAGE = IO::Handle
 
 
@@ -193,6 +194,7 @@ PPCODE:
 	if(GIMME_V != G_VOID){
 		XSRETURN_PV(popped_layer);
 	}
+
 
 SV*
 _dump(f)
