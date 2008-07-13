@@ -7,7 +7,7 @@ PerlIO::Util::JA - PerlIOに関するユーティリティ集
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.51
+This document describes PerlIO::Util version 0.52
 
 =head1 SYNOPSIS
 
@@ -62,7 +62,7 @@ See L<PerlIO::excl>.
 
 =head2 :tee
 
-複数のファイルハンドルに同時に出力する。
+複数のファイルやストリームに同時に出力する。
 
 See L<PerlIO::tee>.
 
@@ -70,17 +70,29 @@ See L<PerlIO::tee>.
 
 PerlIOインターフェイスでディレクトリを読む。
 
+ディレクトリハンドルをファイルハンドルとして扱うため，
+C<:encodeing>などのPerlIOレイヤを適用できる。
+
 See L<PerlIO::dir>.
 
 =head2 :reverse
 
 ファイルを逆順に読む。
 
+一旦全て読み込んでからC<reverse()>するより高速だが，
+コンソールやパイプなどのC<seek()>できないストリームは扱えない。
+
 See L<PerlIO::reverse>.
 
 =head2 :fse
 
 ファイルシステムエンコーディングを扱う。
+
+与えられたファイル名がPerlのユニコード文字列であるとき，
+C<Encode>モジュールを使ってファイルシステムのエンコーディングに変換する。
+なお，Windows以外では自動的にファイルシステムのエンコーディングを取得するが，
+それ以外の環境では環境変数PERLIO_FSEで指定するか，C<use PerlIO::fse>の引数として
+エンコーディングを指定する必要がある。
 
 See L<PerlIO::fse>.
 
@@ -92,7 +104,7 @@ See L<PerlIO::fse>.
 C<open()>に失敗すると致命的エラーとなる。
 
 PerlのC<open()>と異なり（またC<IO::File>のC<new()>とも異なり），I<mode>は
-常に必須である。つまり，基本的にはC<IO::File>のC<new()>の代替だが，常にB<3-arg open>を強要し，失敗すると致命的エラーとなる点でC<IO::File>のC<new()>と異なる。
+常に必須である。つまり，基本的にはC<IO::File>のC<new()>の代替として使用できるが，常にB<3-arg open>を強要し，失敗すると致命的エラーとなる点でC<IO::File>のC<new()>と異なる。
 
 =head2 PerlIO::Util->known_layers( )
 
@@ -114,7 +126,7 @@ C<binmode(FILEHANDLE, ':layer(arg)')>とほぼ同じだが，I<arg>はどんな
 
 =head2 I<FILEHANDLE>-E<gt>pop_layer( )
 
-C<binmode(FILEHANDLE, ':pop)>に等しい。これはI<FILEHANDLE>の最上位の
+C<binmode(FILEHANDLE, ':pop')>に等しい。これはI<FILEHANDLE>の最上部の
 レイヤを取り除く。なお，C<:utf8>やC<:flock>のようなダミーレイヤを取り除くことはできない。
 
 このメソッドは実際に取り除いたレイヤの名前を返す。

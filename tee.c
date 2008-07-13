@@ -140,7 +140,7 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 
 	if(!CanWrite(next)) goto cannot_tee;
 
-	if(SvROK(arg) && (io = GvIO(SvRV(arg)))){
+	if(SvROK(arg) && (io = GvIO(SvRV(arg)))){ /* pushed \*FILEHANDLE */
 		if(!( IoOFP(io) && CanWrite(IoOFP(io)) )){
 			cannot_tee:
 			SETERRNO(EBADF, SS_IVCHAN);
@@ -154,12 +154,14 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 		PerlIO_list_t*  layers = PL_def_layerlist;
 		PerlIO_funcs* tab = NULL;
 
+		TAINT_IF(SvTAINTED(arg));
+		TAINT_PROPER(":tee");
+
 		if(SvPOK(arg) && SvCUR(arg) > 1){
 			TeeArg(f) = parse_fname(aTHX_ arg, &mode);
 		}
 		else{
 			TeeArg(f) = newSVsv(arg);
-
 		}
 
 		if( SvROK(TeeArg(f)) ){

@@ -4,6 +4,11 @@ TODO:
 * improve documents
 * PerlIO::grep - Reads lines matching a pattern
 
+0.52 Sun Jul 13 13:25:59 2008
+	- add security check to :tee and add t/08_taint.t
+	- remove unportable code from t/20_reverse.t
+	- update ppport.h to 3.14_01
+
 0.51 Thu Jul 10 15:48:19 2008
 	- add t/99_pod-coverage.t
 	- add some tests

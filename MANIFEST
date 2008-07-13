@@ -32,6 +32,7 @@ t/04_excl.t
 t/05_extra.t
 t/06_tee.t
 t/07_tee_binmode.t
+t/08_taint.t
 t/10_dir.t
 t/20_reverse.t
 t/30_fse.t
