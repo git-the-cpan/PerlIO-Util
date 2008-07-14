@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                PerlIO-Util
-version:             0.52
+version:             0.53
 abstract:            A selection of general PerlIO utilities
 license:             perl
 author:              

@@ -10,10 +10,8 @@ use Scalar::Util qw(tainted);
 
 use PerlIO::Util;
 
-
 # $^X is tainted
 my $path = File::Spec->join($Bin, 'util', substr($^X, 0, 0) . 'foo');
-
 ok $path, 'using tainted string';
 
 eval{
@@ -22,7 +20,7 @@ eval{
 like $@, qr/insecure/i, 'insecure :tee';
 
 eval{
-	*STDERR->push_layer($path);
+	*STDERR->push_layer(tee => $path);
 };
 like $@, qr/insecure/i, 'insecure :tee';
 
