@@ -4,6 +4,9 @@ TODO:
 * improve documents
 * PerlIO::grep - Reads lines matching a pattern
 
+0.54 Tue Jul 15 17:39:03 2008
+	- fix serucity check code in tee.c
+
 0.53 Mon Jul 14 08:46:42 2008
 	- fix t/08_taint.t
 

@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 5;
+use Test::More tests => 7;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -11,18 +11,25 @@ use Scalar::Util qw(tainted);
 use PerlIO::Util;
 
 # $^X is tainted
-my $path = File::Spec->join($Bin, 'util', substr($^X, 0, 0) . 'foo');
-ok $path, 'using tainted string';
+my $tainted = substr($^X, 0, 0);
+
+my $path = File::Spec->join($Bin, 'util', 'foo') . $tainted;
+
+ok tainted($path), 'using tainted string';
 
 eval{
 	open my $tee, '>:tee', File::Spec->devnull, $path;
 };
 like $@, qr/insecure/i, 'insecure :tee';
 
+my $io;
 eval{
-	*STDERR->push_layer(tee => $path);
+	$io = PerlIO::Util->open('>:tee', File::Spec->devnull);
+	$io->push_layer(tee => $path);
 };
 like $@, qr/insecure/i, 'insecure :tee';
+
+ok close($io), 'close io with a uninitialized layer';
 
 eval{
 	open my $io, '+<:creat', $path;
@@ -33,3 +40,7 @@ eval{
 	open my $io, '+<:excl', $path;
 };
 like $@, qr/insecure/i, 'insecure :excl';
+
+END{
+	pass 'done.';
+}

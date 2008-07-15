@@ -256,7 +256,7 @@ PerlIOTee_write(pTHX_ PerlIO* f, const void* vbuf, Size_t count){
 
 static IV
 PerlIOTee_flush(pTHX_ PerlIO* f){
-	if(PerlIO_flush(TeeOut(f)) != 0){
+	if(TeeOut(f) && PerlIO_flush(TeeOut(f)) != 0){
 		if(ckWARN(WARN_IO)){
 			Perl_warner(aTHX_ packWARN(WARN_IO), "Failed to flush tee-out");
 		}
