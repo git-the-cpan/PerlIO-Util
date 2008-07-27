@@ -10,7 +10,7 @@ BEGIN{
 		exit;
 	}
 
-	plan tests => 10;
+	plan tests => 11;
 }
 
 use FindBin qw($Bin);
@@ -41,6 +41,9 @@ open my $dir, "<:dir:encoding($fse)", File::Spec->join($Bin, 'util');
 my($f) = grep { chomp; $_ eq $basename } <$dir>;
 is $f, $basename, ":dir:encoding($fse)";
 ok open($io, '<:fse', File::Spec->join($Bin, 'util', $f)), '   -> open:fse';
+close $io;
+
+ok open($io, '<:fse', File::Spec->join($Bin, 'util', 'foo')), 'open non-utf8 file';
 close $io;
 
 eval{

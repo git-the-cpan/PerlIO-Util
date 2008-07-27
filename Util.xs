@@ -28,7 +28,7 @@ PerlIOUtil_openn(pTHX_ PerlIO_funcs* force_tab, PerlIO_list_t* layers, IV n,
 		f = tab->Open(aTHX_ tab, layers, i,  mode,
 				fd, imode, perm, f, narg, args);
 
-		/* apply above layers
+		/* apply 'upper' layers
 		   e.g. [ :unix :perlio :utf8 :creat ]
 		                        ~~~~~        
 		*/
@@ -56,17 +56,19 @@ PerlIOUtil_openn(pTHX_ PerlIO_funcs* force_tab, PerlIO_list_t* layers, IV n,
 
 SV*
 dump_perlio(pTHX_ PerlIO* f, int level){
-	SV* sv = newSVpvf("PerlIO 0x%p\n", f);
+	int i;
+	SV* sv = newSVpvs(" ");
+
+	for(i = 0; i < level; i++) sv_catpvs(sv, "  ");
+	sv_catpvf(sv, "PerlIO 0x%p\n", f);
 
 	if(!PerlIOValid(f)){
-		int i;
 		for(i = 0; i <= level; i++) sv_catpvs(sv, "  ");
 
 		sv_catpvs(sv, "(Invalid filehandle)\n");
 	}
 
 	while(PerlIOValid(f)){
-		int i;
 		for(i = 0; i <= level; i++) sv_catpv(sv, "  ");
 
 		sv_catpvf(sv, "0x%p:%s(%d)",
@@ -81,8 +83,20 @@ dump_perlio(pTHX_ PerlIO* f, int level){
 		PutFlag(CRLF);
 		PutFlag(UTF8);
 		PutFlag(UNBUF);
+
 		PutFlag(WRBUF);
+		if(IOLflag(f, PERLIO_F_WRBUF)){
+			sv_catpvf(sv, "(%" IVdf "/%" IVdf ")",
+				(IV)PerlIO_get_cnt(f),
+				(IV)PerlIO_get_bufsiz(f));
+		}
 		PutFlag(RDBUF);
+		if(IOLflag(f, PERLIO_F_RDBUF)){
+			sv_catpvf(sv, "(%" IVdf "/%" IVdf ")",
+				(IV)PerlIO_get_cnt(f),
+				(IV)PerlIO_get_bufsiz(f));
+		}
+
 		PutFlag(LINEBUF);
 		PutFlag(TEMP);
 		PutFlag(OPEN);
@@ -159,7 +173,7 @@ PREINIT:
 	const char* laypv;
 	STRLEN laylen;
 PPCODE:
-	laypv = SvPV(layer, laylen);
+	laypv = SvPV_const(layer, laylen);
 	if(laypv[0] == ':'){ /* ignore a layer prefix */
 		laypv++;
 		laylen--;

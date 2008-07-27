@@ -51,11 +51,11 @@ PerlIOReverse_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 static IV
 PerlIOReverse_pushed(pTHX_ PerlIO *f, const char *mode, SV *arg, PerlIO_funcs *tab){
 	PerlIOReverse* ior;
-	PerlIO* nx  = PerlIONext(f);
+	PerlIO* nx;
 	Off_t pos;
 	PerlIO* p;
 
-	if(!PerlIOValid(nx)){
+	if(!(PerlIOValid(f) && (nx = PerlIONext(f)) && PerlIOValid(nx))){
 		SETERRNO(EBADF, SS_IVCHAN);
 		return -1;
 	}
@@ -113,6 +113,8 @@ PerlIOReverse_popped(pTHX_ PerlIO* f){
 	return PerlIOBase_popped(aTHX_ f);
 }
 
+#if defined(DEBUGGING)
+
 #define write_buf(s, l, m)   PerlIOReverse_debug_write_buf(aTHX_ s, l, m)
 #define write_bufsv(sv, msg) PerlIOReverse_debug_write_buf(aTHX_ SvPVX(sv), SvCUR(sv), msg)
 
@@ -147,6 +149,7 @@ PerlIOReverse_debug_write_buf(pTHX_ register const STDCHAR* src, const Size_t co
 
 	Safefree(buf);
 }
+#endif /* DEBUGGING */
 
 static IV
 PerlIOReverse_flush(pTHX_ PerlIO* f){

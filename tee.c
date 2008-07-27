@@ -7,8 +7,6 @@
 
 #include "perlioutil.h"
 
-#define CanWrite(fp) (PerlIOBase(fp)->flags & PERLIO_F_CANWRITE)
-
 #define TeeOut(f) (PerlIOSelf(f, PerlIOTee)->out)
 #define TeeArg(f) (PerlIOSelf(f, PerlIOTee)->arg)
 
@@ -100,7 +98,7 @@ PerlIOTee_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 static SV*
 parse_fname(pTHX_ SV* arg, const char** mode){
 	STRLEN len;
-	const char* pv = SvPV(arg, len);
+	const char* pv = SvPV_const(arg, len);
 
 	switch (*pv){
 	case '>':
@@ -123,8 +121,7 @@ parse_fname(pTHX_ SV* arg, const char** mode){
 	case '+':
 	case '<':
 	case '|':
-		Perl_croak(aTHX_ "Unacceptable open mode '%c' (it must be '>' or '>>')",
-			*pv);
+		return NULL;
 	default:
 		/* noop */;
 	}
@@ -133,15 +130,26 @@ parse_fname(pTHX_ SV* arg, const char** mode){
 
 static IV
 PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
-	PerlIO* next = PerlIONext(f);
+	PerlIO* nx;
 	IO* io;
 
 	PERL_UNUSED_ARG(tab);
 
-	if(!CanWrite(next)) goto cannot_tee;
+	if(!(PerlIOValid(f) && (nx = PerlIONext(f)) && PerlIOValid(nx))){
+		SETERRNO(EBADF, SS_IVCHAN);
+		return -1;
+	}
+
+
+	if(!IOLflag(nx, PERLIO_F_CANWRITE)) goto cannot_tee;
+
+	if(!SvOK(arg)){
+		SETERRNO(EINVAL, LIB_INVARG);
+		return -1;
+	}
 
 	if(SvROK(arg) && (io = GvIO(SvRV(arg)))){ /* pushed \*FILEHANDLE */
-		if(!( IoOFP(io) && CanWrite(IoOFP(io)) )){
+		if(!( IoOFP(io) && IOLflag(IoOFP(io), PERLIO_F_CANWRITE) )){
 			cannot_tee:
 			SETERRNO(EBADF, SS_IVCHAN);
 			return -1;
@@ -159,6 +167,10 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 
 		if(SvPOK(arg) && SvCUR(arg) > 1){
 			TeeArg(f) = parse_fname(aTHX_ arg, &mode);
+			if(!TeeArg(f)){
+				SETERRNO(EINVAL, LIB_INVARG);
+				return -1;
+			}
 		}
 		else{
 			TeeArg(f) = newSVsv(arg);
@@ -181,7 +193,7 @@ PerlIOTee_pushed(pTHX_ PerlIO* f, const char* mode, SV* arg, PerlIO_funcs* tab){
 		return -1; /* failure */
 	}
 
-	PerlIOBase(f)->flags = PerlIOBase(next)->flags;
+	PerlIOBase(f)->flags = PerlIOBase(nx)->flags;
 
 	IOLflag_on(TeeOut(f),
 		PerlIOBase(f)->flags & (PERLIO_F_UTF8 | PERLIO_F_LINEBUF | PERLIO_F_UNBUF));
@@ -278,9 +290,9 @@ PerlIOTee_seek(pTHX_ PerlIO* f, Off_t offset, int whence){
 
 static Off_t
 PerlIOTee_tell(pTHX_ PerlIO* f){
-	PerlIO* next = PerlIONext(f);
+	PerlIO* nx = PerlIONext(f);
 
-	return PerlIO_tell(next);
+	return PerlIO_tell(nx);
 }
 
 PerlIO*

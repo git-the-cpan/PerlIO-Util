@@ -1,0 +1,17 @@
+# avoid object files
+\.o$
+\.obj$
+
+^Util\.c$
+^Util\.bs$
+^Makefile$
+
+# backup files
+\.(?:old|back)$
+~$
+
+# blib
+blib
+
+# auther's test file
+\btest.pl$

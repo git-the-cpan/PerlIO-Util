@@ -2,7 +2,7 @@ package PerlIO::Util;
 
 use strict;
 
-our $VERSION = '0.54';
+our $VERSION = '0.55';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -33,7 +33,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.54
+This document describes PerlIO::Util version 0.55
 
 =head1 SYNOPSIS
 
@@ -114,7 +114,7 @@ See L<PerlIO::fse>.
 
 =head2 PerlIO::Util->open(I<mode>, I<args>)
 
-Calls built-in C<open()>, and returns an anonymus C<IO::Handle> instance.
+Calls built-in C<open()>, and returns an anonymous C<IO::Handle> instance.
 It dies on fail.
 
 Unlike Perl's C<open()> (nor C<IO::File>'s), I<mode> is always required. 
@@ -142,7 +142,7 @@ Equivalent to C<binmode(FILEHANDLE, ':pop')>. It removes a top level layer
 from I<FILEHANDLE>, but note that you cannot remove dummy layers such as
 C<:utf8> or C<:flock>.
 
-This method returns the name of the poped layer.
+This method returns the name of the popped layer.
 
 =head1 DEPENDENCIES
 
@@ -153,7 +153,7 @@ Perl 5.8.1 or later, and a C compiler.
 No bugs have been reported.
 
 Please report any bugs or feature requests to
-E<lt>gfuji (at) cpan.orgE<gt>, or through the web interface at
+E<lt>gfuji(at)cpan.orgE<gt>, or through the web interface at
 L<http://rt.cpan.org/>.
 
 =head1 SEE ALSO
@@ -171,11 +171,11 @@ L<perlopentut>.
 
 =head1 AUTHOR
 
-Goro Fuji (藤 吾郎) E<lt>gfuji (at) cpan.orgE<gt>
+Goro Fuji (藤 吾郎) E<lt>gfuji(at)cpan.orgE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2008, Goro Fuji E<lt>gfuji (at) cpan.orgE<gt>. Some rights reserved.
+Copyright (c) 2008, Goro Fuji E<lt>gfuji(at)cpan.orgE<gt>. Some rights reserved.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

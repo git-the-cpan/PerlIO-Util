@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 49;
+use Test::More tests => 53;
 
 use FindBin qw($Bin);
 use File::Spec;
@@ -84,7 +84,6 @@ seek $r, 0, SEEK_SET;
 $r->push_layer('reverse');
 is_deeply [<$r>], [ readline( PerlIO::Util->open('<', $f->{normal}{file}) ) ], ':reverse:reverse makes no sense :-)';
 
-
 # Errors
 
 open($r, '<:dir', '.') or die $!;
@@ -112,6 +111,15 @@ eval{
 	$io->push_layer('reverse');
 };
 ok $@, 'with a no-raw layer';
+
+my $file = File::Spec->catfile($Bin, 'util', 'foobar');
+ok !open($r, '>:reverse', $file), 'open with write-mode';
+ok !-e $file, "doesn't create the file";
+
+ok !open($r, '<:reverse', $file), 'open with non-existing file';
+
+ok !open($r, '+<:reverse', $f->{normal}{file}), 'open with read & write -mode';
+
 
 sub make_files{
 	my %f;

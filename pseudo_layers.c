@@ -74,7 +74,7 @@ useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 			"Too late for %s layer", tab->name);
 	}
 
-	return 0;
+	return -1;
 }
 
 static PerlIO*

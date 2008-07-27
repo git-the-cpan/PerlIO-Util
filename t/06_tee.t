@@ -1,12 +1,12 @@
 #!perl
 use strict;
 use warnings FATAL => 'all';
-use Test::More tests => 63;
+use Test::More tests => 70;
 
 use FindBin qw($Bin);
 use File::Spec;
 use Fcntl qw(SEEK_SET SEEK_END);
-use Errno qw(EBADF);
+use Errno qw(EBADF EINVAL);
 use IO::Handle ();
 
 use PerlIO::Util;
@@ -123,7 +123,15 @@ $tee->push_layer(tee => ">> $file");
 print $tee "foobar";
 close $tee;
 
-is slurp($file), "fo*barfoobar", "append to file";
+is slurp($file), "fo*barfoobar", '>>';
+
+# '>'
+open($tee, '>', \$x);
+$tee->push_layer(tee => "> $file");
+print $tee "foobar";
+close $tee;
+
+is slurp($file), 'foobar', '>';
 
 # open three files
 
@@ -184,6 +192,11 @@ ok !eval{ open $tee, '<:tee', \($x, $y) }, "cannot tee for reading";
 ok !open($tee, '>:tee', \$x, File::Spec->join($Bin, 'util', 'no_such_dir', 'file')),
 	"no such file";
 
+ok !open($tee, '>:tee', File::Spec->join($Bin, 'util', 'no_such_dir', 'file'), \$x),
+	"no such file";
+
+ok !open($tee, ">:tee(<$file)", \$x), ':tee(x) with read-mode';
+
 ok !eval{
 	STDIN->push_layer(tee => \*STDOUT);
 }, "Cannot tee for reading";
@@ -193,6 +206,17 @@ ok !eval{
 	STDOUT->push_layer(tee => \*STDIN);
 }, "Cannot tee for reading";
 is $!+0, EBADF, "Bad file descriptor";
+
+ok !eval{
+	STDOUT->push_layer('tee');
+}, 'Not enough arguments';
+is $!+0, EINVAL, 'Invalid argument';
+
+ok !eval{
+	no warnings 'layer';
+	STDOUT->push_layer('tee' => '<foo');
+}, 'invalid argument';
+is $!+0, EINVAL, 'Invalid argument';
 
 eval{
 	PerlIO::Util->open('>:tee', File::Spec->devnull, File::Spec->curdir);

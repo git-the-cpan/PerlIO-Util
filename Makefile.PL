@@ -18,7 +18,7 @@ END
 
 WriteMakefile(
     NAME                => 'PerlIO::Util',
-    AUTHOR              => 'Goro Fuji <gfuji (at) cpan.org>',
+    AUTHOR              => 'Goro Fuji <gfuji(at)cpan.org>',
     VERSION_FROM        => 'lib/PerlIO/Util.pm',
     ABSTRACT_FROM       => 'lib/PerlIO/Util.pm',
 

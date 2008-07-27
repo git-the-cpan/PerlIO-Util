@@ -27,7 +27,7 @@ That is, if a file is opened for writing, C<:flock> attempts exclusive lock
 (using LOCK_EX). Otherwise, it attempts shared lock (using LOCK_SH).
 
 It waits until the lock is granted. If an argument C<non-blocking> (or
-C<LOCK_NB>) is suplied, the call of C<open()> (or C<binmode()>) fails when
+C<LOCK_NB>) is supplied, the call of C<open()> (or C<binmode()>) fails when
 the lock cannot be granted.
 
 This is a pseudo layer that doesn't be pushed on the layer stack.

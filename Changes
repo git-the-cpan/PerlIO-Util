@@ -2,10 +2,15 @@ Revision history for PerlIO-Util
 
 TODO:
 * improve documents
-* PerlIO::grep - Reads lines matching a pattern
+
+0.55
+	- fix some bugs about possibe SEGV
+	- fix some minor bugs
+	- add t/09_invalid.t
+	- add more tests
 
 0.54 Tue Jul 15 17:39:03 2008
-	- fix serucity check code in tee.c
+	- fix a bug from serucity check code in :tee
 
 0.53 Mon Jul 14 08:46:42 2008
 	- fix t/08_taint.t

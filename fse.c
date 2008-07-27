@@ -62,9 +62,7 @@ PerlIOFSE_encode(pTHX_ SV* enc, SV* data){
 	XPUSHs(data);
 	PUTBACK;
 
-	if(call_pv("Encode::encode", G_SCALAR) != 1){
-		Perl_croak(aTHX_ "panic: encode did not return a value");
-	}
+	call_pv("Encode::encode", G_SCALAR);
 
 	SPAGAIN;
 	bytes = POPs;
