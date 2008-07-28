@@ -3,7 +3,10 @@ Revision history for PerlIO-Util
 TODO:
 * improve documents
 
-0.55
+0.56 Mon Jul 28 10:47:42 2008
+	- remove errno tests which depends on platforms
+
+0.55 Sun Jul 27 21:10:22 2008
 	- fix some bugs about possibe SEGV
 	- fix some minor bugs
 	- add t/09_invalid.t
