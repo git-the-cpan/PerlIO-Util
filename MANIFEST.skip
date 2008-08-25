@@ -6,8 +6,11 @@
 ^Util\.bs$
 ^Makefile$
 
+# Devel::Cover
+cover_db
+
 # backup files
-\.(?:old|back)$
+\.(?:old|bak)$
 ~$
 
 # blib

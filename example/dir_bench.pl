@@ -6,6 +6,8 @@ use Benchmark qw(cmpthese timethese);
 use File::Basename;
 
 use PerlIO::Util;
+print "PerlIO::Util/$PerlIO::Util::VERSION\n\n";
+
 my $perlbin = -d '/usr/bin' ? '/usr/bin' : dirname $^X;
 
 my $count = do{

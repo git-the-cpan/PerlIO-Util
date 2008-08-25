@@ -55,7 +55,7 @@ PerlIOUtil_openn(pTHX_ PerlIO_funcs* force_tab, PerlIO_list_t* layers, IV n,
 	}while(0)
 
 SV*
-dump_perlio(pTHX_ PerlIO* f, int level){
+PerlIOUtil_dump(pTHX_ PerlIO* f, int level){
 	int i;
 	SV* sv = newSVpvs(" ");
 
@@ -107,7 +107,7 @@ dump_perlio(pTHX_ PerlIO* f, int level){
 
 		if( strEQ(PerlIOBase(f)->tab->name, "tee") ){
 			PerlIO* teeout = PerlIOTee_teeout(aTHX_ f);
-			SV* t = dump_perlio(aTHX_ teeout, level+1);
+			SV* t = PerlIOUtil_dump(aTHX_ teeout, level+1);
 
 			sv_catsv(sv, t);
 			SvREFCNT_dec(t);
@@ -119,6 +119,15 @@ dump_perlio(pTHX_ PerlIO* f, int level){
 	return sv;
 }
 
+void
+PerlIOUtil_warnif(pTHX_ U32 category, const char* fmt, ...){
+	if(ckWARN(category)){
+		va_list args;
+		va_start(args, fmt);
+		Perl_vwarner(aTHX_ category, fmt, &args);
+		va_end(args);
+	}
+}
 
 MODULE = PerlIO::Util		PACKAGE = PerlIO::Util		
 
@@ -214,7 +223,7 @@ SV*
 _dump(f)
 	PerlIO* f
 CODE:
-	RETVAL = dump_perlio(aTHX_ f, 0);
+	RETVAL = perlio_dump(f);
 OUTPUT:
 	RETVAL
 

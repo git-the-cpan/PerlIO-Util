@@ -1,6 +1,7 @@
 #ifndef PERLIO_UTIL_H
 #define PERLIO_UTIL_H
 
+#define PERL_NO_GET_CONTEXT
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
@@ -21,16 +22,22 @@
 PerlIO*
 PerlIOTee_teeout(pTHX_ const PerlIO* tee);
 
+#define perlio_dump(f) PerlIOUtil_dump(aTHX_ f, 0)
 SV*
-dump_perlio(pTHX_ PerlIO* f, int level);
+PerlIOUtil_dump(pTHX_ PerlIO* f, int level);
 
 PerlIO*
 PerlIOUtil_openn(pTHX_ PerlIO_funcs* tab, PerlIO_list_t* layers, IV n,
 		const char* mode, int fd, int imode, int perm,
 		PerlIO* f, int narg, SV** args);
 
+void
+PerlIOUtil_warnif(pTHX_ U32 category, const char* fmt, ...)
+	__attribute__format__(__printf__,pTHX_2,pTHX_3)
+	__attribute__nonnull__(pTHX_2);
+
 IV
-useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
+PerlIOUtil_useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 		PerlIO_funcs* tab);
 
 SV*

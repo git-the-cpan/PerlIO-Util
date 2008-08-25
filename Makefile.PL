@@ -2,7 +2,7 @@ require 5.008_001; # for PerlIO::get_layers()
 
 use strict;
 use warnings;
-use ExtUtils::MakeMaker;
+use inc::Module::Install;
 
 if($] < 5.008_008){
 	my $v = sprintf '%vd', $^V;
@@ -16,15 +16,11 @@ END
 	sleep 1;
 }
 
+name 'PerlIO-Util';
+all_from 'lib/PerlIO/Util.pm';
+
 WriteMakefile(
-    NAME                => 'PerlIO::Util',
-    AUTHOR              => 'Goro Fuji <gfuji(at)cpan.org>',
-    VERSION_FROM        => 'lib/PerlIO/Util.pm',
-    ABSTRACT_FROM       => 'lib/PerlIO/Util.pm',
-
     OBJECT              => '$(O_FILES)',
-
-    LICENSE             => 'perl',
 
     clean               => { FILES => 'PerlIO-Util-* *.gcov *.gcda *.gcno' },
 );

@@ -10,7 +10,7 @@ SYNOPSIS
 	my $in = PerlIO::Util->open('+<:creat :flock', $file); 
 
 	# to multiplex output
-	STDERR->push_layer(tee => ">> $err_log");
+	*STDERR->push_layer(tee => ">> $err_log");
 
 	# to read lines backward
 	my $in = PerlIO::Util->open('<:reverse', $file);

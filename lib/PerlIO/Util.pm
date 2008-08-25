@@ -1,8 +1,10 @@
 package PerlIO::Util;
 
+use 5.008_001;
+
 use strict;
 
-our $VERSION = '0.56';
+our $VERSION = '0.59_01';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -33,7 +35,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.56
+This document describes PerlIO::Util version 0.59_01
 
 =head1 SYNOPSIS
 
@@ -41,19 +43,19 @@ This document describes PerlIO::Util version 0.56
 
     # utility layers
 
-    open $in, "+<:flock", ...; # with flock(IN, LOCK_EX)
+    open $in, '+<:flock', ...; # with flock(IN, LOCK_EX)
 
-    open $in, "+<:creat :excl", ...; # with O_CREAT | O_EXCL
+    open $in, '+<:creat :excl', ...; # with O_CREAT | O_EXCL
 
-    open $out, ">:tee", $file, \$scalar, \*STDERR;
-    print $out "foo"; # print to $file, $scalar and *STDERR
+    open $out, '>:tee', 'file.txt', \$scalar, \*STDERR;
+    print $out 'foo'; # print to 'file.txt', $scalar and *STDERR
 
     # utility routines
 
     $fh = PerlIO::Util->open('<', $file); # it dies on fail
 
     *STDOUT->push_layer(scalar => \$s); # it dies on fail
-    print "foo";
+    print 'foo';
 
     print *STDOUT->pop_layer(); # => scalar
     print $s; # => foo

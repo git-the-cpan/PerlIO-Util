@@ -63,16 +63,13 @@ PerlIOFlock_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 }
 
 IV
-useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
+PerlIOUtil_useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 		PerlIO_funcs* tab){
 	PERL_UNUSED_ARG(fp);
 	PERL_UNUSED_ARG(mode);
 	PERL_UNUSED_ARG(arg);
 
-	if(ckWARN(WARN_LAYER)){
-		Perl_warner(aTHX_ packWARN(WARN_LAYER),
-			"Too late for %s layer", tab->name);
-	}
+	PerlIOUtil_warnif(aTHX_ packWARN(WARN_LAYER), "Too late for %s layer", tab->name);
 
 	return -1;
 }
@@ -161,7 +158,7 @@ PERLIO_FUNCS_DECL(PerlIO_creat) = {
 	"creat",
 	0, /* size */
 	PERLIO_K_DUMMY, /* kind */
-	useless_pushed,
+	PerlIOUtil_useless_pushed,
 	NULL, /* popped */
 	PerlIOCreat_open,
 	NULL, /* binmode */
@@ -193,7 +190,7 @@ PERLIO_FUNCS_DECL(PerlIO_excl) = {
 	"excl",
 	0, /* size */
 	PERLIO_K_DUMMY, /* kind */
-	useless_pushed,
+	PerlIOUtil_useless_pushed,
 	NULL, /* popped */
 	PerlIOExcl_open,
 	NULL, /* binmode */

@@ -121,7 +121,7 @@ PERLIO_FUNCS_DECL(PerlIO_fse) = {
 	"fse",
 	0, /* size */
 	PERLIO_K_DUMMY, /* kind */
-	useless_pushed,
+	PerlIOUtil_useless_pushed,
 	NULL, /* popped */
 	PerlIOFSE_open,
 	NULL, /* binmode */

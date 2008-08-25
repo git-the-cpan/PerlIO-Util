@@ -15,7 +15,8 @@
 typedef struct{
 	struct _PerlIO base;
 
-	STDCHAR buffer[ REV_BUFSIZ ];
+	STDCHAR buffer[ REV_BUFSIZ ]; /* first buffer */
+
 	SV* segsv; /* broken segment */
 
 	SV* bufsv; /* reversed buffer */
@@ -69,11 +70,9 @@ PerlIOReverse_pushed(pTHX_ PerlIO *f, const char *mode, SV *arg, PerlIO_funcs *t
 		if(!(PerlIOBase(p)->tab->kind & PERLIO_K_RAW)
 			|| (PerlIOBase(p)->flags & PERLIO_F_CRLF)){
 
-			if(ckWARN(WARN_LAYER)){
-				Perl_warner(aTHX_ packWARN(WARN_LAYER),
+			PerlIOUtil_warnif(aTHX_ packWARN(WARN_LAYER),
 					":%s is not a raw layer",
 					PerlIOBase(p)->tab->name);
-			}
 			SETERRNO(EINVAL, LIB_INVARG);
 			return -1;
 		}
@@ -113,7 +112,7 @@ PerlIOReverse_popped(pTHX_ PerlIO* f){
 	return PerlIOBase_popped(aTHX_ f);
 }
 
-#if defined(DEBUGGING)
+#if defined(IOR_DEBUGGING)
 
 #define write_buf(s, l, m)   PerlIOReverse_debug_write_buf(aTHX_ s, l, m)
 #define write_bufsv(sv, msg) PerlIOReverse_debug_write_buf(aTHX_ SvPVX(sv), SvCUR(sv), msg)

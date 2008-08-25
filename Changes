@@ -3,6 +3,14 @@ Revision history for PerlIO-Util
 TODO:
 * improve documents
 
+0.59_01 Mon Aug 25 14:32:18 2008
+	* PerlIO::Util
+		- use Module::Install
+		- use PERL_NO_GET_CONTEXT macro for efficiency
+	* PerlIO::tee
+		- fix PerlIOTee_dup() for threads
+		- add t/062_tee_threads.t
+
 0.56 Mon Jul 28 10:47:42 2008
 	- remove errno tests which depends on platforms
 
