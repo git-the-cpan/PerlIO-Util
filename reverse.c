@@ -171,9 +171,13 @@ reverse_read(pTHX_ PerlIO* f, STDCHAR* vbuf, SSize_t count){
 	Off_t pos;
 
 	pos = PerlIO_tell(nx);
+
+	assert( pos == (SSize_t)pos ); /* XXX: What should I do? */
+
 	if(pos <= 0){
 		IOLflag_on(f, pos < 0 ? PERLIO_F_ERROR : PERLIO_F_EOF);
-		return pos;
+
+		return (SSize_t)pos;
 	}
 
 	if(pos < count){

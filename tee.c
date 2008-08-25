@@ -44,7 +44,22 @@ PerlIO_layer_from_ref(pTHX_ SV *sv)
     }
 } /* PerlIO_layer_from_ref() */
 
+static PerlIO*
+PerlIO_dup(pTHX_ PerlIO* newfp, PerlIO* oldfp, CLONE_PARAMS* params, int flags){
+	if(PerlIOValid(oldfp)){
+		PerlIO* (*my_dup)(pTHX_ PerlIO*, PerlIO*, CLONE_PARAMS*, int);
 
+		my_dup = PerlIOBase(oldfp)->tab->Dup;
+
+		if(!newfp)	newfp  = PerlIO_allocate(aTHX);
+		if(!my_dup)	my_dup = PerlIOBase_dup;
+
+		return my_dup(aTHX_ newfp, oldfp, params, flags);
+	}
+
+	SETERRNO(EBADF, SS_IVCHAN);
+	return NULL;
+}
 
 typedef struct {
 	struct _PerlIO base; /* virtual table and flags */
@@ -290,20 +305,13 @@ PerlIOTee_getarg(pTHX_ PerlIO* f, CLONE_PARAMS* param, int flags){
 
 static PerlIO*
 PerlIOTee_dup(pTHX_ PerlIO* f, PerlIO* o, CLONE_PARAMS* param, int flags){
-	PERLIO_FUNCS_DECL(*nxtab) = PerlIOBase(PerlIONext(o))->tab;
-
 #if 0
 	printf("#dup:%s (my_perl=%p, f=%p, o=%p, {proto_perl=%p,flags=0x%x}, flags=%d)\n",
 		PerlIOBase(o)->tab->name, my_perl, f, o, param->proto_perl,
 		(unsigned)param->flags, flags);
 #endif
 
-	if(nxtab->Dup){
-		f = nxtab->Dup(aTHX_ f, PerlIONext(o), param, flags);
-	}
-	else{
-		f = PerlIOBase_dup(aTHX_ f, PerlIONext(o), param, flags);
-	}
+	f = PerlIO_dup(aTHX_ f, PerlIONext(o), param, flags);
 
 	if(f){
 		PerlIOTee proto;
@@ -325,7 +333,7 @@ PerlIOTee_dup(pTHX_ PerlIO* f, PerlIO* o, CLONE_PARAMS* param, int flags){
 			proto.arg = NULL;
 		}
 
-		proto.out = PerlIO_fdupopen(aTHX_ TeeOut(o), param, flags);
+		proto.out = PerlIO_dup(aTHX_ NULL, TeeOut(o), param, flags);
 #endif
 
 #if 0

@@ -2,6 +2,11 @@ Revision history for PerlIO-Util
 
 TODO:
 * improve documents
+* PerlIO::cat - Concatenates a number of files
+
+0.59_02 Mon Aug 25 22:50:20 2008
+	* PerlIO::tee
+		- fix PerlIOTee_dup() for ActivePerl
 
 0.59_01 Mon Aug 25 14:32:18 2008
 	* PerlIO::Util

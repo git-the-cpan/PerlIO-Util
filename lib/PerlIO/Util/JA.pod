@@ -7,7 +7,7 @@ PerlIO::Util::JA - PerlIOに関するユーティリティ集
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.59_01
+This document describes PerlIO::Util version 0.59_02
 
 =head1 SYNOPSIS
 
