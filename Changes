@@ -4,6 +4,10 @@ TODO:
 * improve documents
 * PerlIO::cat - Concatenates a number of files
 
+0.59_03 Mon Aug 25 23:29:55 2008
+	- remove __attribute__nonnull__,
+		which is not available on some old versions of perl
+
 0.59_02 Mon Aug 25 22:50:20 2008
 	* PerlIO::tee
 		- fix PerlIOTee_dup() for ActivePerl

@@ -33,8 +33,7 @@ PerlIOUtil_openn(pTHX_ PerlIO_funcs* tab, PerlIO_list_t* layers, IV n,
 
 void
 PerlIOUtil_warnif(pTHX_ U32 category, const char* fmt, ...)
-	__attribute__format__(__printf__,pTHX_2,pTHX_3)
-	__attribute__nonnull__(pTHX_2);
+	__attribute__format__(__printf__,pTHX_2,pTHX_3);
 
 IV
 PerlIOUtil_useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
