@@ -1,4 +1,3 @@
-.cvsignore
 Changes
 dir.c
 example/dir_bench.pl
@@ -22,8 +21,8 @@ lib/PerlIO/tee.pm
 lib/PerlIO/Util.pm
 lib/PerlIO/Util/JA.pod
 Makefile.PL
-MANIFEST			This list of files
-MANIFEST.skip
+MANIFEST
+MANIFEST.SKIP
 META.yml
 missing.c
 perlioflock.h
@@ -46,10 +45,9 @@ t/09_invalid.t
 t/10_dir.t
 t/20_reverse.t
 t/30_fse.t
+t/98_portfs.t
 t/99_pod-coverage.t
 t/99_pod.t
-t/util/.lock
-t/util/foo
 t/util/locktest.pl
 tee.c
 Util.xs

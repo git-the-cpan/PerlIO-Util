@@ -21,7 +21,7 @@ PerlIO::tee - Multiplex output layer
 
 =head1 DESCRIPTION
 
-C<PerlIO::tee> provides a multiplex output stream like C<tee(1)> command.
+C<PerlIO::tee> provides a multiplex output stream like C<tee(1)>.
 It makes a filehandle write to one or more files (or
 scalars via the C<:scalar> layer) at the same time.
 
@@ -36,9 +36,9 @@ filehandle. For example:
 
 You can also use C<open()> with multiple arguments.
 However, it is just a syntax sugar to call C<push_layer()>: One C<:tee>
-layer has a single extra filehandle, so arguments C<$x, $y, $z> of C<open()>,
+layer has a single extra ourput stream, so arguments C<$x, $y, $z> of C<open()>,
 for example, prepares a filehandle with one default layer and two C<:tee>
-layers with a internal filehandle.
+layers with a internal output stream.
 
 	open my $tee, '>:tee', $x, $y, $z;
 	# the code above means:
@@ -55,14 +55,14 @@ layers with a internal filehandle.
 
 =head1 EXAMPLE
 
-Here is an minimal implementation of C<tee(1)>.
+Here is a minimal implementation of C<tee(1)>.
 
 	#!/usr/bin/perl -w
 	# Usage: $0 files...
 	use strict;
 	use PerlIO::Util;
 
-	STDOUT->push_layer(tee => $_) for @ARGV;
+	*STDOUT->push_layer(tee => $_) for @ARGV;
 
 	while(read STDIN, $_, 2**12){
 		print;

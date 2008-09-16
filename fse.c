@@ -8,29 +8,29 @@
 #define DEFAULT_FSE "UTF-8"
 
 #ifdef __CYGWIN__
-#include <mlang.h>
+#include <windows.h>
 #endif
 
 SV*
 PerlIOFSE_get_fse(pTHX){
-	SV* fse = get_sv("PerlIO::Util::fse", GV_ADD | GV_ADDMULTI);
+	SV* fse = get_sv("PerlIO::Util::fse", GV_ADDMULTI);
 
 	if (!SvOK(fse)) {
 #if defined(WIN32) || defined(__CYGWIN__)
 		unsigned long codepage = GetACP();
 		if(codepage != 0){
-			sv_setpvf(fse, "cp%lu", codepage);
+			Perl_sv_setpvf(aTHX_ fse, "cp%lu", codepage);
 		}
 #endif
 
-		if(!PL_tainting && PL_uid == PL_euid && PL_gid == PL_egid){
+		if(!PL_tainting){
 			const char* env_fse = PerlEnv_getenv("PERLIO_FSE");
 			if(env_fse && *env_fse){
 				sv_setpv(fse, env_fse);
 			}
 		}
 
-		if(!SvTRUE(fse)){
+		if(!SvOK(fse)){
 			sv_setpvs(fse, DEFAULT_FSE);
 		}
 		PerlIO_debug("PerlIOFSE_initialize: encoding=%" SVf , fse);
@@ -58,8 +58,9 @@ PerlIOFSE_encode(pTHX_ SV* enc, SV* data){
 	}
 
 	PUSHMARK(sp);
-	XPUSHs(enc);
-	XPUSHs(data);
+	EXTEND(sp, 2);
+	PUSHs(enc);
+	PUSHs(data);
 	PUTBACK;
 
 	call_pv("Encode::encode", G_SCALAR);
@@ -84,10 +85,11 @@ PerlIOFSE_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 		SV* arg = PerlIOArg;
 		SV* save;
 
-		fse = PerlIOFSE_get_fse(aTHX);
-
 		if(arg && SvOK(arg)){
 			fse = arg;
+		}
+		else{
+			fse = PerlIOFSE_get_fse(aTHX);
 		}
 
 		if(!SvOK(fse)){

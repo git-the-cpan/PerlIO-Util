@@ -1,10 +1,9 @@
-#!perl
+#!perl -w
 use strict;
-use warnings;
 
 use Test::More tests => 8;
 
-use_ok( 'PerlIO::Util' );
+require_ok('PerlIO::Util');
 
 require_ok('PerlIO::flock');
 require_ok('PerlIO::creat');

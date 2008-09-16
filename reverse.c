@@ -148,7 +148,7 @@ PerlIOReverse_debug_write_buf(pTHX_ register const STDCHAR* src, const Size_t co
 
 	Safefree(buf);
 }
-#endif /* DEBUGGING */
+#endif /* IOR_DEBUGGING */
 
 static IV
 PerlIOReverse_flush(pTHX_ PerlIO* f){
@@ -165,7 +165,7 @@ PerlIOReverse_flush(pTHX_ PerlIO* f){
 }
 
 static SSize_t
-reverse_read(pTHX_ PerlIO* f, STDCHAR* vbuf, SSize_t count){
+reverse_read(pTHX_ PerlIO* const f, STDCHAR* const vbuf, SSize_t count){
 	PerlIO* nx = PerlIONext(f);
 	SSize_t avail = 0;
 	Off_t pos;

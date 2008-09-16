@@ -22,59 +22,60 @@ use Fatal qw(unlink);
 #	return $st;
 #}
 
-my $file = File::Spec->join($Bin, 'util', '.creat');
+my $file = File::Spec->join($Bin, 'util', 'creat');
 
 ok !-e $file, "before open: the file doesn't exist";
 
-ok open(*IN, "<:creat", $file), "open with :creat";
+my $in;
+ok open($in, "<:creat", $file), "open with :creat";
 
 ok -e $file, "after open: the file does exist";
 
 
-close *IN;
+close $in;
 unlink $file;
-ok open(*IN, "<:utf8 :creat", $file), "open with :utf8 :creat -> failure";
-ok scalar(grep { $_ eq 'utf8' } *IN->get_layers()), 'utf8 on';
+ok open($in, "<:utf8 :creat", $file), "open with :utf8 :creat -> failure";
+ok scalar(grep { $_ eq 'utf8' } $in->get_layers()), 'utf8 on';
 ok -e $file, "... not exist";
 
-ok open(*IN, "<:creat :utf8", $file), "open with :creat :utf8";
+ok open($in, "<:creat :utf8", $file), "open with :creat :utf8";
 ok -e $file, "... exist";
 
-close *IN;
+close $in;
 unlink $file;
-ok open(*IN, "<:raw :creat", $file), "open with :raw :creat";
+ok open($in, "<:raw :creat", $file), "open with :raw :creat";
 ok -e $file, "... exist";
 
 
-close *IN;
+close $in;
 unlink $file;
-ok open(*IN, "<:unix :creat", $file), "open with :unix :creat";
+ok open($in, "<:unix :creat", $file), "open with :unix :creat";
 ok -e $file, "... exist";
 
 
-close *IN;
+close $in;
 unlink $file;
-ok open(*IN, "<:crlf :creat", $file), "open with :crlf :creat";
+ok open($in, "<:crlf :creat", $file), "open with :crlf :creat";
 ok -e $file, "... exist";
 
-close *IN;
+close $in;
 unlink $file;
-ok open(*IN, "<:creat :crlf", $file), "open with :creat :crlf";
+ok open($in, "<:creat :crlf", $file), "open with :creat :crlf";
 ok -e $file, "... exist";
 
 
 
-my @layers = IN->get_layers();
+my @layers = $in->get_layers();
 
 ok scalar( grep{ $_ eq 'crlf' } @layers ), "has other layers (in [@layers])";
 
-close *IN;
+close $in;
 unlink $file;
 
 {
 	use open IO => ':creat';
 
-	ok sysopen(*IN, $file, O_RDWR), "sysopen with :creat";
+	ok sysopen($in, $file, O_RDWR), "sysopen with :creat";
 
 	ok -e $file, "... exist";
 
@@ -82,12 +83,12 @@ unlink $file;
 
 eval{
 	use warnings FATAL => 'layer';
-	binmode *IN, ":creat";
+	binmode $in, ":creat";
 };
 
 like $@, qr/Too late/, "Useless use of :creat";
 
-ok close(*IN), "close";
+ok close($in), "close";
 
 
 END{

@@ -5,7 +5,8 @@ use warnings;
 use Benchmark qw(cmpthese timethese);
 
 use PerlIO::Util;
-print "PerlIO::Util/$PerlIO::Util::VERSION\n\n";
+printf "Perl/%vd   PerlIO::Util/%s\n\n",
+	$^V, $PerlIO::Util::VERSION;
 
 
 my $file = @ARGV ? shift(@ARGV) : `perldoc -l perl`;

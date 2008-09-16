@@ -327,7 +327,7 @@ PerlIOTee_dup(pTHX_ PerlIO* f, PerlIO* o, CLONE_PARAMS* param, int flags){
 #else
 		if(!SvROK(TeeArg(o))){
 			proto.arg = PerlIO_sv_dup(aTHX_ TeeArg(o), param);
-			SvREFCNT_inc_simple_void_NN(proto.arg);
+			//SvREFCNT_inc_simple_void_NN(proto.arg);
 		}
 		else{
 			proto.arg = NULL;

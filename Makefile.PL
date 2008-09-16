@@ -22,5 +22,5 @@ all_from 'lib/PerlIO/Util.pm';
 WriteMakefile(
     OBJECT              => '$(O_FILES)',
 
-    clean               => { FILES => 'PerlIO-Util-* *.gcov *.gcda *.gcno' },
+    clean               => { FILES => 'PerlIO-Util-* *.gcov *.gcda *.gcno *.stackdump' },
 );

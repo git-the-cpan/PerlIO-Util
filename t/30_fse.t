@@ -10,7 +10,7 @@ BEGIN{
 		exit;
 	}
 
-	plan tests => 11;
+	plan tests => 12;
 }
 
 use FindBin qw($Bin);
@@ -21,6 +21,7 @@ diag 'fse = ', PerlIO::Util->fse;
 
 my $basename = 'ファイルシステムエンコーディング.txt';
 my $utf8 = File::Spec->catfile($Bin, 'util', $basename);
+my $non_utf8 = File::Spec->catfile($Bin, 'util', 'locktest.pl');
 my $fse = PerlIO::Util->fse;
 
 require_ok('PerlIO::fse');
@@ -43,7 +44,8 @@ is $f, $basename, ":dir:encoding($fse)";
 ok open($io, '<:fse', File::Spec->join($Bin, 'util', $f)), '   -> open:fse';
 close $io;
 
-ok open($io, '<:fse', File::Spec->join($Bin, 'util', 'foo')), 'open non-utf8 file';
+ok open($io, '<:fse', $non_utf8), 'open non-utf8 file';
+is scalar(<$io>), "#!perl\n";
 close $io;
 
 eval{

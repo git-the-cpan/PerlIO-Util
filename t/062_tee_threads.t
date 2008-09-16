@@ -31,8 +31,8 @@ sub slurp{
 	return scalar <$in>;
 }
 
-my $file1 = File::Spec->join($Bin, 'util', '.thr1');
-my $file2 = File::Spec->join($Bin, 'util', '.thr2');
+my $file1 = File::Spec->join($Bin, 'util', 'thr1');
+my $file2 = File::Spec->join($Bin, 'util', 'thr2');
 
 ok open(my $tee, '>:tee', $file1, $file2), 'open:tee file1, file2';
 

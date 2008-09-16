@@ -13,8 +13,8 @@ use PerlIO::Util;
 use constant USING_CRLF
 	=> scalar( grep{ $_ eq 'crlf' } STDOUT->get_layers() );
 
-my $file1 = File::Spec->join($Bin, 'util', '.tee1');
-my $file2 = File::Spec->join($Bin, 'util', '.tee2');
+my $file1 = File::Spec->join($Bin, 'util', 'tee1');
+my $file2 = File::Spec->join($Bin, 'util', 'tee2');
 my($x, $y, $tee);
 
 sub slurp{

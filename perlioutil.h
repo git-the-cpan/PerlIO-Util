@@ -32,7 +32,7 @@ PerlIOUtil_openn(pTHX_ PerlIO_funcs* tab, PerlIO_list_t* layers, IV n,
 		PerlIO* f, int narg, SV** args);
 
 void
-PerlIOUtil_warnif(pTHX_ U32 category, const char* fmt, ...)
+PerlIOUtil_warnif(pTHX_ const U32 category, const char* fmt, ...)
 	__attribute__format__(__printf__,pTHX_2,pTHX_3);
 
 IV

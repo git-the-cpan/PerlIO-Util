@@ -15,13 +15,13 @@ PerlIO::reverse - Reads lines backward
 	open my $rev, '<:reverse', $file;
 	print while <$rev>; # print contents reversely
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
 The C<:reverse> layer reads lines backward like C<tac(1)>.
 
 =head1 EXAMPLE
 
-Here is an minimal implementation of C<tac(1)>.
+Here is a minimal implementation of C<tac(1)>.
 
 	#!/usr/bin/perl -w
 	# Usage: $0 files...

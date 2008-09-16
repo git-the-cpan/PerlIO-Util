@@ -11,27 +11,30 @@ BEGIN{
 		or *O_RDONLY = sub(){ 0 }; # maybe
 }
 
-my $file = File::Spec->catfile($Bin, "util/.lock");
+my $file = File::Spec->catfile($Bin, "util/lockfile");
+   { open my $touch, '>', $file; print $touch "OK"; }
+END{ unlink $file if $file and -e $file }
 
 my $helper = File::Spec->catfile($Bin, "util/locktest.pl");
 
-ok open(IN, "<:flock", $file), "open with :flock";
-ok close(IN), "close";
+my $in;
+ok open($in, "<:flock", $file), "open with :flock";
+ok close($in), "close";
 
 {
 	local $@ = '';
 	eval{
-		open IN, "<:flock(blocking)", $file or die;
+		open $in, "<:flock(blocking)", $file or die;
 	};
 	is $@, '', ":flock(blocking) - OK";
 
 	eval{
-		open IN, "<:flock(non-blocking)", $file or die;
+		open $in, "<:flock(non-blocking)", $file or die;
 	};
 	is $@, '', ":flock(non-blocking) - OK";
 
 	eval{
-		open IN, "<:flock(foo)", $file or die;
+		open $in, "<:flock(foo)", $file or die;
 	};
 	isnt $@, '', ":flock(foo) - FATAL";
 
@@ -44,19 +47,19 @@ ok close(IN), "close";
 	ok !defined(binmode $unopened, ':flock'),     ":flock to unopened filehandle (binmode)";
 	ok !eval{ $unopened->push_layer('flock');1 }, ":flock to unopened filehandle (push_layer)";
 }
-ok open(IN, "<:flock", $file), "open(readonly) in this process";
+ok open($in, "<:flock", $file), "open(readonly) in this process";
 ok system($^X, "-Mblib", $helper, "<:flock", $file),
 	"open(readonly) in child process";
 
-is scalar(<IN>), "OK", "readline";
+is scalar(<$in>), "OK", "readline";
 
 isnt system($^X, "-Mblib", $helper, "+<:flock(non-blocking)", $file), 0,
 	"open(rdwr) in child process -> failed";
 
 
-open IN, "<", $file;
+open $in, "<", $file;
 
-ok binmode(IN, ":flock"), "binmode IN, ':flock'";
+ok binmode($in, ":flock"), "binmode $in, ':flock'";
 ok system($^X, "-Mblib", $helper, "<:flock", $file),
 	"open(readonly) in child process";
 isnt system($^X, "-Mblib", $helper, "+<:flock(non-blocking)", $file), 0,
@@ -65,12 +68,12 @@ isnt system($^X, "-Mblib", $helper, "+<:flock(non-blocking)", $file), 0,
 {
 	use open IO => ':flock';
 
-	ok sysopen(IN, $file, O_RDONLY), "sysopen with :flock";
+	ok sysopen($in, $file, O_RDONLY), "sysopen with :flock";
 	ok system($^X, "-Mblib", $helper, "<:flock", $file),
 		"shared lock in child process";
 	isnt system($^X, "-Mblib", $helper, "+<:flock(non-blocking)", $file), 0,
 		"exclusive lock in child process";
-	close IN;
+	close $in;
 }
 
 # irregular

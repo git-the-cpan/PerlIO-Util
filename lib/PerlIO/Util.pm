@@ -4,20 +4,20 @@ use 5.008_001;
 
 use strict;
 
-our $VERSION = '0.59_03';
+our $VERSION = '0.60';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
 
 *IO::Handle::get_layers = \&PerlIO::get_layers;
 
-sub open{
+sub open :method{
 	if(@_ < 3){
 		require Carp;
 		Carp::croak('Usage: PerlIO::Util->open($mode, @args)');
 	}
 	my $anonio;
-	unless(CORE::open $anonio, $_[1], @_[2 .. $#_]){
+	unless(open $anonio, $_[1], @_[2 .. $#_]){
 		require Carp;
 		Carp::croak('Cannot open(',join(', ', @_[1 .. $#_]), "): $!");
 	}
@@ -35,7 +35,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.59_03
+This document describes PerlIO::Util version 0.60
 
 =head1 SYNOPSIS
 
@@ -90,7 +90,7 @@ See L<PerlIO::excl>.
 
 =head2 :tee
 
-Multiplex output layer.
+Multiplex output stream.
 
 See L<PerlIO::tee>.
 
@@ -102,7 +102,7 @@ See L<PerlIO::dir>.
 
 =head2 :reverse
 
-Reverse input iterator.
+Reverse input stream.
 
 See L<PerlIO::reverse>.
 

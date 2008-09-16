@@ -4,20 +4,15 @@ TODO:
 * improve documents
 * PerlIO::cat - Concatenates a number of files
 
-0.59_03 Mon Aug 25 23:29:55 2008
-	- remove __attribute__nonnull__,
-		which is not available on some old versions of perl
-
-0.59_02 Mon Aug 25 22:50:20 2008
+0.60 Tue Sep 16 09:03:31 2008
+	- use Module::Install
+	- use PERL_NO_GET_CONTEXT for effciency
+	- add t/98_portfs for testing filenames portability
+	- fix t/05_extra.t on some utf8 environments
+	- fix pod documents
+	- internal cleanup
 	* PerlIO::tee
-		- fix PerlIOTee_dup() for ActivePerl
-
-0.59_01 Mon Aug 25 14:32:18 2008
-	* PerlIO::Util
-		- use Module::Install
-		- use PERL_NO_GET_CONTEXT macro for efficiency
-	* PerlIO::tee
-		- fix PerlIOTee_dup() for threads
+		- add PerlIOTee_dup()
 		- add t/062_tee_threads.t
 
 0.56 Mon Jul 28 10:47:42 2008

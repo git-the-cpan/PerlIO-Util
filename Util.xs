@@ -120,7 +120,7 @@ PerlIOUtil_dump(pTHX_ PerlIO* f, int level){
 }
 
 void
-PerlIOUtil_warnif(pTHX_ U32 category, const char* fmt, ...){
+PerlIOUtil_warnif(pTHX_ const U32 category, const char* fmt, ...){
 	if(ckWARN(category)){
 		va_list args;
 		va_start(args, fmt);
@@ -145,7 +145,7 @@ BOOT:
 void
 known_layers(...)
 PREINIT:
-	const PerlIO_list_t* layers = PL_known_layers;
+	const PerlIO_list_t* const layers = PL_known_layers;
 	int i;
 PPCODE:
 	EXTEND(SP, layers->cur);
@@ -170,7 +170,7 @@ OUTPUT:
 MODULE = PerlIO::Util		PACKAGE = IO::Handle
 
 
-#define undef Nullsv
+#define undef (&PL_sv_undef)
 
 void
 push_layer(filehandle, layer, arg = undef)
@@ -189,7 +189,7 @@ PPCODE:
 	}
 	tab = PerlIO_find_layer(aTHX_ laypv, laylen, TRUE);
 	if(tab){
-		if(!PerlIO_push(aTHX_ filehandle, tab, Nullch, arg ? arg : &PL_sv_undef)){
+		if(!PerlIO_push(aTHX_ filehandle, tab, Nullch, arg)){
 			Perl_croak(aTHX_ "push_layer() failed: %s",
 				PerlIOValid(filehandle)
 					? Strerror(errno)

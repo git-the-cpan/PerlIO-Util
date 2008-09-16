@@ -12,24 +12,24 @@ PerlIO::dir - Reads directories
 
 =head1 SYNOPSIS
 
-	open my $dp, '<:dir', '.';
+	open my $dirh, '<:dir', '.';
 
-	binmode $dp, ':encoding(cp932)'; # OK
+	binmode $dirh, ':encoding(cp932)'; # OK
 
-	my @dirs = <$dp>; # added "\n" at the end of the name
+	my @dirs = <$dirh>; # added "\n" at the end of the name
 	chomp @dirs; # if necessary
 
 =head1 DESCRIPTION
 
-C<PerlIO::dir> provides an interface to read directories.
+C<PerlIO::dir> provides an interface to directory reading functions,
+C<opendir()>, C<readdir()>, C<rewinddir> and C<closedir()>.
 
-There is an important difference between C<:dir> and Perl's C<readdir()>. This
-layer B<appends a newline code>, C<\n>, to the end of the name, because
-C<readline()> requires input separators. Call C<chomp()> if necessary.
+However, there is an important difference between C<:dir> and Perl's
+C<readdir()>. This layer B<appends a newline code>, C<\n>, to the end of
+the name, because C<readline()> requires input separators. Call C<chomp()>
+if necessary.
 
-You can use C<seek($dir, 0, 0)> only for C<rewinddir()>. 
-
-	seek $dir, 0, 0; # equivalent to rewinddir()
+You can use C<seek($dirh, 0, 0)> for C<rewinddir()>. 
 
 =head1 SEE ALSO
 

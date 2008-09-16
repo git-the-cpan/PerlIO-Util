@@ -86,9 +86,9 @@ sub slurp{
 	return scalar <$in>;
 }
 
-my $file  = File::Spec->join($Bin, 'util', '.tee');
-my $file2 = File::Spec->join($Bin, 'util', '.tee2');
-my $file3 = File::Spec->join($Bin, 'util', '.tee3');
+my $file  = File::Spec->join($Bin, 'util', 'tee1');
+my $file2 = File::Spec->join($Bin, 'util', 'tee2');
+my $file3 = File::Spec->join($Bin, 'util', 'tee3');
 
 # \$x, $file
 ok open($tee, '>:tee', \$x, $file), 'open \$scalar, $file';
@@ -199,23 +199,23 @@ ok !open($tee, ">:tee(<$file)", \$x), ':tee(x) with read-mode';
 
 
 ok !eval{
-	STDIN->push_layer(tee => \*STDOUT);
+	*STDIN->push_layer(tee => \*STDOUT);
 }, 'Cannot tee';
 #is $!+0, EBADF, "Bad file descriptor";
 
 ok !eval{
-	STDOUT->push_layer(tee => \*STDIN);
+	*STDOUT->push_layer(tee => \*STDIN);
 }, 'Cannot tee';
 #is $!+0, EBADF, "Bad file descriptor";
 
 ok !eval{
-	STDOUT->push_layer('tee');
+	*STDOUT->push_layer('tee');
 }, 'Not enough arguments';
 #is $!+0, EINVAL, 'Invalid argument';
 
 ok !eval{
 	no warnings 'layer';
-	STDOUT->push_layer('tee' => '<foo');
+	*STDOUT->push_layer('tee' => '<foo');
 }, 'Invalid argument';
 #is $!+0, EINVAL, 'Invalid argument';
 

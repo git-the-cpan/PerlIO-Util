@@ -1,6 +1,5 @@
-#!perl -T
+#!perl -wT
 use strict;
-use warnings;
 
 use Test::More tests => 7;
 
@@ -13,7 +12,7 @@ use PerlIO::Util;
 # $^X is tainted
 my $tainted = substr($^X, 0, 0);
 
-my $path = File::Spec->join($Bin, 'util', 'foo') . $tainted;
+my $path = File::Spec->join($Bin, 'util', 'taint') . $tainted;
 
 ok tainted($path), 'using tainted string';
 
@@ -42,5 +41,5 @@ eval{
 like $@, qr/insecure/i, 'insecure :excl';
 
 END{
-	pass 'done.';
+	ok !-e $path, 'file not created';
 }
