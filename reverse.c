@@ -25,9 +25,9 @@ typedef struct{
 } PerlIOReverse;
 
 static PerlIO*
-PerlIOReverse_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
-		  const char* mode, int fd, int imode, int perm,
-		  PerlIO* f, int narg, SV** args){
+PerlIOReverse_open(pTHX_ PerlIO_funcs* const self, PerlIO_list_t* const layers, IV const n,
+		  const char* const mode, int const fd, int const imode, int const perm,
+		  PerlIO* f, int const narg, SV** const args){
 	PerlIO_funcs* tab;
 
 	assert(layers->cur > 0);
@@ -50,7 +50,7 @@ PerlIOReverse_open(pTHX_ PerlIO_funcs* self, PerlIO_list_t* layers, IV n,
 }
 
 static IV
-PerlIOReverse_pushed(pTHX_ PerlIO *f, const char *mode, SV *arg, PerlIO_funcs *tab){
+PerlIOReverse_pushed(pTHX_ PerlIO* const f, const char* const mode, SV* const arg, PerlIO_funcs* const tab){
 	PerlIOReverse* ior;
 	PerlIO* nx;
 	Off_t pos;
@@ -98,8 +98,8 @@ PerlIOReverse_pushed(pTHX_ PerlIO *f, const char *mode, SV *arg, PerlIO_funcs *t
 	return PerlIOBase_pushed(aTHX_ f, mode, arg, tab);
 }
 static IV
-PerlIOReverse_popped(pTHX_ PerlIO* f){
-	PerlIOReverse* ior = IOR(f);
+PerlIOReverse_popped(pTHX_ PerlIO* const f){
+	PerlIOReverse* const ior = IOR(f);
 
 	PerlIO_debug("PerlIOReverse_popped:"
 			" bufsv=%ld, segsv=%ld\n",
@@ -151,7 +151,7 @@ PerlIOReverse_debug_write_buf(pTHX_ register const STDCHAR* src, const Size_t co
 #endif /* IOR_DEBUGGING */
 
 static IV
-PerlIOReverse_flush(pTHX_ PerlIO* f){
+PerlIOReverse_flush(pTHX_ PerlIO* const f){
 	if(IOLflag(f, PERLIO_F_RDBUF)){
 		PerlIOReverse* ior = IOR(f);
 		Off_t offset = (ior->end - ior->ptr) + SvCUR(ior->segsv);
@@ -166,11 +166,9 @@ PerlIOReverse_flush(pTHX_ PerlIO* f){
 
 static SSize_t
 reverse_read(pTHX_ PerlIO* const f, STDCHAR* const vbuf, SSize_t count){
-	PerlIO* nx = PerlIONext(f);
+	PerlIO* const nx = PerlIONext(f);
 	SSize_t avail = 0;
-	Off_t pos;
-
-	pos = PerlIO_tell(nx);
+	Off_t const pos = PerlIO_tell(nx);
 
 	assert( pos == (SSize_t)pos ); /* XXX: What should I do? */
 
@@ -210,18 +208,18 @@ reverse_read(pTHX_ PerlIO* const f, STDCHAR* const vbuf, SSize_t count){
 
 
 static IV
-PerlIOReverse_fill(pTHX_ PerlIO* f){
-	PerlIOReverse* ior = IOR(f);
+PerlIOReverse_fill(pTHX_ PerlIO* const f){
+	PerlIOReverse* const ior = IOR(f);
 	SSize_t avail;
 
-	SV* bufsv = ior->bufsv;
-	SV* segsv = ior->segsv;
+	SV* const bufsv = ior->bufsv;
+	SV* const segsv = ior->segsv;
 	STDCHAR* rbuf;
 
-	STDCHAR* buf = ior->buffer;
+	STDCHAR* const buf = ior->buffer;
 	STDCHAR* ptr;
-	STDCHAR* end;
-	STDCHAR* start;
+	const STDCHAR* end;
+	const STDCHAR* start;
 
 	SvCUR(bufsv) = 0;
 
@@ -251,7 +249,7 @@ PerlIOReverse_fill(pTHX_ PerlIO* f){
 
 	/* solve previous segment */
 	if(SvCUR(segsv) > 0){
-		STDCHAR* p = end;
+		const STDCHAR* p = end;
 		while(p >= ptr){
 			if(*(--p) == '\n') break;
 		}
@@ -314,35 +312,35 @@ PerlIOReverse_fill(pTHX_ PerlIO* f){
 }
 
 static STDCHAR*
-PerlIOReverse_get_base(pTHX_ PerlIO* f){
+PerlIOReverse_get_base(pTHX_ PerlIO* const f){
 	return SvPVX(IOR(f)->bufsv);
 }
 
 static STDCHAR*
-PerlIOReverse_get_ptr(pTHX_ PerlIO* f){
+PerlIOReverse_get_ptr(pTHX_ PerlIO* const f){
 	return IOR(f)->ptr;
 }
 
 static SSize_t
-PerlIOReverse_get_cnt(pTHX_ PerlIO* f){
+PerlIOReverse_get_cnt(pTHX_ PerlIO* const f){
 	return IOR(f)->end - IOR(f)->ptr;
 }
 
 static Size_t
-PerlIOReverse_bufsiz(pTHX_ PerlIO* f){
+PerlIOReverse_bufsiz(pTHX_ PerlIO* const f){
 	return SvCUR(IOR(f)->bufsv);
 }
 
 static void
-PerlIOReverse_set_ptrcnt(pTHX_ PerlIO* f, STDCHAR* ptr, SSize_t cnt){
+PerlIOReverse_set_ptrcnt(pTHX_ PerlIO* const f, STDCHAR* const ptr, SSize_t const cnt){
 	PERL_UNUSED_ARG(cnt);
 
 	IOR(f)->ptr  = ptr;
 }
 
 static IV
-PerlIOReverse_seek(pTHX_ PerlIO* f, Off_t offset, int whence){
-	PerlIO* nx = PerlIONext(f);
+PerlIOReverse_seek(pTHX_ PerlIO* const f, Off_t const offset, int whence){
+	PerlIO* const nx = PerlIONext(f);
 
 	PerlIOReverse_flush(aTHX_ f);
 
@@ -357,9 +355,9 @@ PerlIOReverse_seek(pTHX_ PerlIO* f, Off_t offset, int whence){
 	return PerlIO_seek(nx, -offset, whence);
 }
 static Off_t
-PerlIOReverse_tell(pTHX_ PerlIO* f){
-	PerlIO* nx = PerlIONext(f);
-	Off_t current = PerlIO_tell(nx);
+PerlIOReverse_tell(pTHX_ PerlIO* const f){
+	PerlIO* const nx = PerlIONext(f);
+	Off_t const current = PerlIO_tell(nx);
 	Off_t end;
 
 	if(PerlIO_seek(nx, (Off_t)0, SEEK_END) < 0){

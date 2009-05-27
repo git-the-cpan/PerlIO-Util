@@ -17,7 +17,7 @@ use PerlIO::Util;
 open my $invalid, '+<', \'';
 1 while $invalid->pop_layer();
 
-like $invalid->_dump, qr/Invalid filehandle/, 'setup invalid filehandle';
+like $invalid->inspect, qr/Invalid filehandle/, 'setup invalid filehandle';
 
 foreach my $l qw(:flock :creat :excl :tee :dir :reverse :fse){
 	no warnings 'layer';

@@ -63,9 +63,9 @@ my $pos = tell $r;
 
 is $pos, length($s), 'tell';
 
-like $r->_dump, qr/RDBUF/, 'with reading buffer';
+like $r->inspect, qr/RDBUF/, 'with reading buffer';
 ok seek($r, 0, SEEK_SET), 'rewind';
-unlike $r->_dump, qr/RDBUF/, 'without reading buffer';
+unlike $r->inspect, qr/RDBUF/, 'without reading buffer';
 is scalar(<$r>), $f->{normal}{contents}[0], 'readline after rewind';
 seek $r, $pos, SEEK_SET;
 is scalar(<$r>), $f->{normal}{contents}[1], 'SEEK_SET';

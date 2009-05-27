@@ -3,11 +3,15 @@
 
 =head1 NAME
 
-PerlIO::Util::JA - PerlIOに関するユーティリティ集
+PerlIO::Util::JA - PerlIOに関する汎用ユーティリティ集
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.60
+This document describes PerlIO::Util version 0.69_01
+
+=for test_synopsis
+
+    my($in, $out, $file, $scalar);
 
 =head1 SYNOPSIS
 
@@ -15,22 +19,22 @@ This document describes PerlIO::Util version 0.60
 
     # utility layers
 
-    open $in, "+<:flock", ...; # with flock(IN, LOCK_EX)
+    open $in, '+<:flock', $file; # with flock(IN, LOCK_EX)
 
-    open $in, "+<:creat :excl", ...; # with O_CREAT | O_EXCL
+    open $in, '+<:creat :excl', $file; # with O_CREAT | O_EXCL
 
-    open $out, ">:tee", $file, \$scalar, \*STDERR;
+    open $out, '>:tee', $file, \$scalar, \*STDERR;
     print $out "foo"; # print to $file, $scalar and *STDERR
 
     # utility routines
 
-    $fh = PerlIO::Util->open('<', $file); # it dies on fail
+    $in = PerlIO::Util->open('<', $file); # it dies on fail
 
-    *STDOUT->push_layer(scalar => \$s); # it dies on fail
+    *STDOUT->push_layer(scalar => \$scalar); # it dies on fail
     print "foo";
 
     print *STDOUT->pop_layer(); # => scalar
-    print $s; # => foo
+    print $scalar; # => foo
 
 =head1 DESCRIPTION
 
@@ -38,7 +42,7 @@ C<PerlIO::Util>はPerlIOに関するユーティリティレイヤとユーテ�
 提供するモジュールである。
 
 ユーティリティレイヤはC<PerlIO::Util>の一部だが，使用に際してC<use PerlIO::Util>
-と書く必要はない。PerlIOはレイヤを自動的にロードする。
+と書く必要はない。PerlIOは必要に応じてレイヤを自動的にロードする。
 
 =head1 UTILITY LAYERS
 
@@ -91,8 +95,9 @@ See L<PerlIO::reverse>.
 与えられたファイル名がPerlのユニコード文字列であるとき，
 C<Encode>モジュールを使ってファイルシステムのエンコーディングに変換する。
 なお，Windows以外では自動的にファイルシステムのエンコーディングを取得するが，
-それ以外の環境では環境変数PERLIO_FSEで指定するか，C<use PerlIO::fse>の引数として
-エンコーディングを指定する必要がある。
+それ以外の環境では環境変数PERLIO_FSEで指定するか，C<use PerlIO::fse>の引数としてエンコーディングを指定する必要がある。
+
+なお，このレイヤーは0.70で独立したモジュールとなった。
 
 See L<PerlIO::fse>.
 

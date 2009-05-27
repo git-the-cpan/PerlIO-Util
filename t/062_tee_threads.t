@@ -36,10 +36,10 @@ my $file2 = File::Spec->join($Bin, 'util', 'thr2');
 
 ok open(my $tee, '>:tee', $file1, $file2), 'open:tee file1, file2';
 
-#diag 'main ', $tee->_dump;
+#diag 'main ', $tee->inspect;
 
 my $thr1 = threads->new(sub{
-	#diag 'subthr', $tee->_dump;
+	#diag 'subthr', $tee->inspect;
 	ok defined fileno($tee), 'opened (thr1)';
 	ok print($tee 'foo'), 'print (thr1)';
 	ok close($tee), 'close (thr1)';
@@ -58,7 +58,7 @@ is slurp($file2), 'foobar', 'print to file2';
 	open my $out2, '>', $file2;
 	ok open($tee, '>:tee', $file1, $out2), 'open:tee file1, out2';
 	my $thr2 = threads->new(sub{
-		#diag 'subthr ', $tee->_dump;
+		#diag 'subthr ', $tee->inspect;
 		ok defined fileno($tee), 'opend (thr2)';
 		ok print($tee 'FOO'), 'print (thr2)';
 		ok close($tee), 'close (thr2)';

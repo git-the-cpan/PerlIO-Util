@@ -4,7 +4,7 @@ use 5.008_001;
 
 use strict;
 
-our $VERSION = '0.60';
+our $VERSION = '0.69_01';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -12,17 +12,23 @@ XSLoader::load(__PACKAGE__, $VERSION);
 *IO::Handle::get_layers = \&PerlIO::get_layers;
 
 sub open :method{
-	if(@_ < 3){
+	shift; # this class
+
+	if(@_ < 2){
 		require Carp;
 		Carp::croak('Usage: PerlIO::Util->open($mode, @args)');
 	}
-	my $anonio;
-	unless(open $anonio, $_[1], @_[2 .. $#_]){
+
+	my $mode = shift;
+	my $io = _gensym_ref(scalar caller, join ' ', @_);
+
+	unless(open $io, $mode, @_){
 		require Carp;
-		Carp::croak('Cannot open(',join(', ', @_[1 .. $#_]), "): $!");
+		Carp::croak('Cannot open(%s): %s', join(', ', $mode, @_), $!);
 	}
-	return bless $anonio => 'IO::Handle';
+	return $io;
 }
+
 
 1;
 __END__
@@ -35,30 +41,37 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.60
+This document describes PerlIO::Util version 0.69_01
+
+=for test_synopsis
+
+	my($file);
 
 =head1 SYNOPSIS
 
-    use PerlIO::Util;
+	use PerlIO::Util;
+
+	my $file = 'foo.txt';
 
     # utility layers
 
-    open $in, '+<:flock', ...; # with flock(IN, LOCK_EX)
+	# open and flock(IN, LOCK_EX)
+	my $io = PerlIO::Util->open('+< :flock', $file);
 
-    open $in, '+<:creat :excl', ...; # with O_CREAT | O_EXCL
+	# open with O_CREAT | O_EXCL
+	$io = PerlIO::Util->open('+<:creat :excl', $file);
 
-    open $out, '>:tee', 'file.txt', \$scalar, \*STDERR;
+	my $scalar = '';
+    my $out = PerlIO::Util->open('>:tee', 'file.txt', \$scalar, \*STDERR);
     print $out 'foo'; # print to 'file.txt', $scalar and *STDERR
 
     # utility routines
 
-    $fh = PerlIO::Util->open('<', $file); # it dies on fail
-
-    *STDOUT->push_layer(scalar => \$s); # it dies on fail
-    print 'foo';
+    *STDOUT->push_layer(scalar => \$scalar); # it dies on fail
+    print 'foo'; # to $scalar
 
     print *STDOUT->pop_layer(); # => scalar
-    print $s; # => foo
+    print $scalar; # to *STDOUT
 
 =head1 DESCRIPTION
 
@@ -109,6 +122,8 @@ See L<PerlIO::reverse>.
 =head2 :fse
 
 Mediation of filesystem encoding.
+
+This layer is split into an independent distribuiion, C<PerlIO::fse>.
 
 See L<PerlIO::fse>.
 
@@ -177,7 +192,7 @@ Goro Fuji (藤 吾郎) E<lt>gfuji(at)cpan.orgE<gt>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2008, Goro Fuji E<lt>gfuji(at)cpan.orgE<gt>. Some rights reserved.
+Copyright (c) 2008-2009, Goro Fuji E<lt>gfuji(at)cpan.orgE<gt>. Some rights reserved.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

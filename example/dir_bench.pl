@@ -16,7 +16,7 @@ my $count = do{
 	$n++ while defined(my $d = <$dir>);
 	$n;
 };
-print "read: $count\n";
+print "Number of files: $count\n";
 
 cmpthese timethese -1 => {
 	layer => sub{

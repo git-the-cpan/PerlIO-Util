@@ -12,7 +12,7 @@ PerlIO::reverse - Reads lines backward
 
 =head1 SYNOPSIS
 
-	open my $rev, '<:reverse', $file;
+	open my $rev, '<:reverse', 'foo.txt';
 	print while <$rev>; # print contents reversely
 
 =head1 DESCRIPTION

@@ -2,11 +2,11 @@
 #define PERLIO_UTIL_H
 
 #define PERL_NO_GET_CONTEXT
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
+#include <EXTERN.h>
+#include <perl.h>
+#include <XSUB.h>
 
-#include "perliol.h"
+#include <perliol.h>
 
 #include "ppport.h"
 
@@ -22,9 +22,9 @@
 PerlIO*
 PerlIOTee_teeout(pTHX_ const PerlIO* tee);
 
-#define perlio_dump(f) PerlIOUtil_dump(aTHX_ f, 0)
+#define perlio_inspect(f) PerlIOUtil_inspect(aTHX_ f, 0)
 SV*
-PerlIOUtil_dump(pTHX_ PerlIO* f, int level);
+PerlIOUtil_inspect(pTHX_ PerlIO* f, int level);
 
 PerlIO*
 PerlIOUtil_openn(pTHX_ PerlIO_funcs* tab, PerlIO_list_t* layers, IV n,
@@ -39,16 +39,12 @@ IV
 PerlIOUtil_useless_pushed(pTHX_ PerlIO* fp, const char* mode, SV* arg,
 		PerlIO_funcs* tab);
 
-SV*
-PerlIOFSE_get_fse(pTHX);
-
 extern PERLIO_FUNCS_DECL(PerlIO_flock);
 extern PERLIO_FUNCS_DECL(PerlIO_creat);
 extern PERLIO_FUNCS_DECL(PerlIO_excl);
 extern PERLIO_FUNCS_DECL(PerlIO_tee);
 extern PERLIO_FUNCS_DECL(PerlIO_dir);
 extern PERLIO_FUNCS_DECL(PerlIO_reverse);
-extern PERLIO_FUNCS_DECL(PerlIO_fse);
 
 
 #endif /*PERLIO_UTIL_H*/

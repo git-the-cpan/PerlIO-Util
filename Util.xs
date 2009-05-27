@@ -4,13 +4,15 @@
 
 #include "perlioutil.h"
 
+#ifndef gv_stashpvs
+#define gv_stashpvs(s, c) gv_stashpvn(s "", sizeof(s)-1, c)
+#endif
 
 PerlIO*
-PerlIOUtil_openn(pTHX_ PerlIO_funcs* force_tab, PerlIO_list_t* layers, IV n,
-		const char* mode, int fd, int imode, int perm,
-		PerlIO* f, int narg, SV** args){
+PerlIOUtil_openn(pTHX_ PerlIO_funcs* const force_tab, PerlIO_list_t* const layers, IV const n,
+		const char* const mode, int const fd, int const imode, int const perm,
+		PerlIO* f, int const narg, SV** const args){
 	PerlIO_funcs* tab = NULL;
-
 	IV i = n;
 
 	while(--i >= 0){ /* find a layer with Open() */
@@ -20,9 +22,7 @@ PerlIOUtil_openn(pTHX_ PerlIO_funcs* force_tab, PerlIO_list_t* layers, IV n,
 		}
 	}
 
-	if(force_tab){
-		tab = force_tab;
-	}
+	if(force_tab) tab = force_tab;
 
 	if(tab && tab->Open){
 		f = tab->Open(aTHX_ tab, layers, i,  mode,
@@ -50,16 +50,17 @@ PerlIOUtil_openn(pTHX_ PerlIO_funcs* force_tab, PerlIO_list_t* layers, IV n,
 
 #define PutFlag(c) do{\
 		if(PerlIOBase(f)->flags & (PERLIO_F_##c)){\
-			sv_catpvf(sv, " %s", #c);\
+			sv_catpvs(sv, " " #c);\
 		}\
 	}while(0)
 
 SV*
-PerlIOUtil_dump(pTHX_ PerlIO* f, int level){
+PerlIOUtil_inspect(pTHX_ PerlIO* f, int const level){
 	int i;
-	SV* sv = newSVpvs(" ");
+	SV* const sv = newSVpvs(" ");
 
 	for(i = 0; i < level; i++) sv_catpvs(sv, "  ");
+
 	sv_catpvf(sv, "PerlIO 0x%p\n", f);
 
 	if(!PerlIOValid(f)){
@@ -106,8 +107,8 @@ PerlIOUtil_dump(pTHX_ PerlIO* f, int level){
 		sv_catpvs(sv, "\n");
 
 		if( strEQ(PerlIOBase(f)->tab->name, "tee") ){
-			PerlIO* teeout = PerlIOTee_teeout(aTHX_ f);
-			SV* t = PerlIOUtil_dump(aTHX_ teeout, level+1);
+			PerlIO* const teeout = PerlIOTee_teeout(aTHX_ f);
+			SV* const t = PerlIOUtil_inspect(aTHX_ teeout, level+1);
 
 			sv_catsv(sv, t);
 			SvREFCNT_dec(t);
@@ -120,11 +121,11 @@ PerlIOUtil_dump(pTHX_ PerlIO* f, int level){
 }
 
 void
-PerlIOUtil_warnif(pTHX_ const U32 category, const char* fmt, ...){
+PerlIOUtil_warnif(pTHX_ U32 const category, const char* const fmt, ...){
 	if(ckWARN(category)){
 		va_list args;
 		va_start(args, fmt);
-		Perl_vwarner(aTHX_ category, fmt, &args);
+		vwarner(category, fmt, &args);
 		va_end(args);
 	}
 }
@@ -140,7 +141,6 @@ BOOT:
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_tee));
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_dir));
 	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_reverse));
-	PerlIO_define_layer(aTHX_ PERLIO_FUNCS_CAST(&PerlIO_fse));
 
 void
 known_layers(...)
@@ -150,19 +150,24 @@ PREINIT:
 PPCODE:
 	EXTEND(SP, layers->cur);
 	for(i = 0; i < layers->cur; i++){
-		SV* name = newSVpv( LayerFetch(layers, i)->name, 0);
+		SV* const name = newSVpv( LayerFetch(layers, i)->name, 0);
 		PUSHs( sv_2mortal(name) );
 	}
 	XSRETURN(layers->cur);
 
 SV*
-fse(...)
+_gensym_ref(SV* pkg, SV* name)
+PREINIT:
+	STRLEN len;
+	const char* pv;
+	GV* const gv = (GV*)newSV(0);
 CODE:
-	RETVAL = PerlIOFSE_get_fse(aTHX);
-	SvREFCNT_inc_simple_void_NN(RETVAL);
-	if(items > 1){
-		sv_setsv(RETVAL, ST(1));
-	}
+	pv = SvPV_const(name, len);
+	/* see also pp_rv2gv() in pp.c */
+	gv_init(gv, gv_stashsv(pkg, TRUE), pv, len, GV_ADD);
+	RETVAL = newRV_noinc((SV*)gv);
+
+	sv_bless(RETVAL, gv_stashpvs("IO::Handle", TRUE));
 OUTPUT:
 	RETVAL
 
@@ -189,7 +194,7 @@ PPCODE:
 	}
 	tab = PerlIO_find_layer(aTHX_ laypv, laylen, TRUE);
 	if(tab){
-		if(!PerlIO_push(aTHX_ filehandle, tab, Nullch, arg)){
+		if(!PerlIO_push(aTHX_ filehandle, tab, NULL, arg)){
 			Perl_croak(aTHX_ "push_layer() failed: %s",
 				PerlIOValid(filehandle)
 					? Strerror(errno)
@@ -206,7 +211,7 @@ void
 pop_layer(filehandle)
 	PerlIO* filehandle
 PREINIT:
-	const char* popped_layer = Nullch;
+	const char* popped_layer;
 PPCODE:
 	if(!PerlIOValid(filehandle)) XSRETURN_EMPTY;
 	popped_layer = PerlIOBase(filehandle)->tab->name;
@@ -218,12 +223,9 @@ PPCODE:
 		XSRETURN_PV(popped_layer);
 	}
 
+MODULE = PerlIO::Util	PACKAGE = IO::Handle	PREFIX = perlio_
+
 
 SV*
-_dump(f)
+perlio_inspect(f)
 	PerlIO* f
-CODE:
-	RETVAL = perlio_dump(f);
-OUTPUT:
-	RETVAL
-

@@ -4,6 +4,11 @@ TODO:
 * improve documents
 * PerlIO::cat - Concatenates a number of files
 
+0.69_01 Wed May 27 10:22:18 2009
+	- split PerlIO::fse into an independent distribution
+	- add $io->inspect() method
+	- improve PerlIO->open() with a smart gensym routine
+
 0.60 Tue Sep 16 09:03:31 2008
 	- use Module::Install
 	- use PERL_NO_GET_CONTEXT for effciency

@@ -1,5 +1,3 @@
-require 5.008_001; # for PerlIO::get_layers()
-
 use strict;
 use warnings;
 use inc::Module::Install;
@@ -19,8 +17,20 @@ END
 name 'PerlIO-Util';
 all_from 'lib/PerlIO/Util.pm';
 
+build_requires 'ExtUtils::ParseXS';
+
+test_requires 'Test::More' => 0.62;
+
+author_tests 'xt';
+
 WriteMakefile(
     OBJECT              => '$(O_FILES)',
 
-    clean               => { FILES => 'PerlIO-Util-* *.gcov *.gcda *.gcno *.stackdump' },
+    clean               => { FILES =>
+    	q{PerlIO-Util-*
+    		cover_db
+    		*.gcov *.gcda *.gcno
+    		*.stackdump
+    		*.out
+    	} },
 );

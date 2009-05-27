@@ -2,11 +2,12 @@ Changes
 dir.c
 example/dir_bench.pl
 example/iocapture.pl
+example/ioname.pl
 example/piotac.pl
 example/piotee.pl
 example/rev_bench.pl
-fse.c
 inc/Module/Install.pm
+inc/Module/Install/AuthorTests.pm
 inc/Module/Install/Base.pm
 inc/Module/Install/Makefile.pm
 inc/Module/Install/MakeMaker.pm
@@ -15,7 +16,6 @@ lib/PerlIO/creat.pm
 lib/PerlIO/dir.pm
 lib/PerlIO/excl.pm
 lib/PerlIO/flock.pm
-lib/PerlIO/fse.pm
 lib/PerlIO/reverse.pm
 lib/PerlIO/tee.pm
 lib/PerlIO/Util.pm
@@ -44,10 +44,11 @@ t/08_taint.t
 t/09_invalid.t
 t/10_dir.t
 t/20_reverse.t
-t/30_fse.t
-t/98_portfs.t
-t/99_pod-coverage.t
-t/99_pod.t
 t/util/locktest.pl
 tee.c
 Util.xs
+xt/01_podspell.t
+xt/02_pod.t
+xt/03_pod-coverage.t
+xt/04_synopsis.t
+xt/05_portfs.t

@@ -10,6 +10,10 @@ __END__
 
 PerlIO::flock - Easy flock() interface
 
+=for test_synopsis
+
+	my($file, $fh);
+
 =head1 SYNOPSIS
 
 	open my $in,  '< :flock', $file; # shared lock
