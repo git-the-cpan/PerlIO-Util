@@ -4,6 +4,10 @@ TODO:
 * improve documents
 * PerlIO::cat - Concatenates a number of files
 
+0.70 Sat Jun  6 08:50:01 2009
+	- remove PerlIO::fse from t/00_load.t
+	- fix pods
+
 0.69_01 Wed May 27 10:22:18 2009
 	- split PerlIO::fse into an independent distribution
 	- add $io->inspect() method

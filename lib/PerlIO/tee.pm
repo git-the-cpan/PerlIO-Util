@@ -10,9 +10,7 @@ __END__
 
 PerlIO::tee - Multiplex output layer
 
-=for test_synopsis
-
-	my($file, @sources, $scalar);
+=for test_synopsis my($file, @sources, $scalar);
 
 =head1 SYNOPSIS
 

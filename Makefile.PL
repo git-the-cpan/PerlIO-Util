@@ -7,7 +7,7 @@ if($] < 5.008_008){
 	warn(<<"END");
 **** WARNING ***
 
-Perl version $v is too old to pass all the tests.
+Because Perl version $v has some bugs in perlio,
 Perl version 5.8.8 or later is recommended.
 
 END

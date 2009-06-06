@@ -4,7 +4,7 @@ use 5.008_001;
 
 use strict;
 
-our $VERSION = '0.69_01';
+our $VERSION = '0.70';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -41,27 +41,22 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.69_01
+This document describes PerlIO::Util version 0.70.
 
-=for test_synopsis
-
-	my($file);
+=for test_synopsis my($file, $scalar, $io);
 
 =head1 SYNOPSIS
 
 	use PerlIO::Util;
 
-	my $file = 'foo.txt';
-
     # utility layers
 
 	# open and flock(IN, LOCK_EX)
-	my $io = PerlIO::Util->open('+< :flock', $file);
+	$io = PerlIO::Util->open('+< :flock', $file);
 
 	# open with O_CREAT | O_EXCL
 	$io = PerlIO::Util->open('+<:creat :excl', $file);
 
-	my $scalar = '';
     my $out = PerlIO::Util->open('>:tee', 'file.txt', \$scalar, \*STDERR);
     print $out 'foo'; # print to 'file.txt', $scalar and *STDERR
 
@@ -123,7 +118,7 @@ See L<PerlIO::reverse>.
 
 Mediation of filesystem encoding.
 
-This layer is split into an independent distribuiion, C<PerlIO::fse>.
+This layer was split into an independent distribuiion, C<PerlIO::fse>.
 
 See L<PerlIO::fse>.
 
@@ -131,7 +126,7 @@ See L<PerlIO::fse>.
 
 =head2 PerlIO::Util->open(I<mode>, I<args>)
 
-Calls built-in C<open()>, and returns an anonymous C<IO::Handle> instance.
+Calls built-in C<open()>, and returns an C<IO::Handle> instance named I<args>.
 It dies on fail.
 
 Unlike Perl's C<open()> (nor C<IO::File>'s), I<mode> is always required. 
@@ -188,7 +183,7 @@ L<perlopentut>.
 
 =head1 AUTHOR
 
-Goro Fuji (藤 吾郎) E<lt>gfuji(at)cpan.orgE<gt>
+Goro Fuji (藤 吾郎) E<lt>gfuji(at)cpan.orgE<gt>.
 
 =head1 LICENSE AND COPYRIGHT
 

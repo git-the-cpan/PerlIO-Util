@@ -7,11 +7,9 @@ PerlIO::Util::JA - PerlIOに関する汎用ユーティリティ集
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.69_01
+This document describes PerlIO::Util version 0.70
 
-=for test_synopsis
-
-    my($in, $out, $file, $scalar);
+=for test_synopsis my($in, $out, $file, $scalar);
 
 =head1 SYNOPSIS
 
@@ -163,7 +161,7 @@ L<perlopentut>.
 
 =head1 AUTHOR
 
-Goro Fuji (藤 吾郎) E<lt>gfuji(at)cpan.orgE<gt>
+Goro Fuji (藤 吾郎) E<lt>gfuji(at)cpan.orgE<gt>.
 
 =head1 LICENSE AND COPYRIGHT
 
