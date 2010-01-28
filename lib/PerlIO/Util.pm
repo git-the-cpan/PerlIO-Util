@@ -4,7 +4,7 @@ use 5.008_001;
 
 use strict;
 
-our $VERSION = '0.70';
+our $VERSION = '0.71';
 
 require XSLoader;
 XSLoader::load(__PACKAGE__, $VERSION);
@@ -41,7 +41,7 @@ PerlIO::Util - A selection of general PerlIO utilities
 
 =head1 VERSION
 
-This document describes PerlIO::Util version 0.70.
+This document describes PerlIO::Util version 0.71.
 
 =for test_synopsis my($file, $scalar, $io);
 
@@ -118,7 +118,7 @@ See L<PerlIO::reverse>.
 
 Mediation of filesystem encoding.
 
-This layer was split into an independent distribuiion, C<PerlIO::fse>.
+This layer was split into an independent distribution, C<PerlIO::fse>.
 
 See L<PerlIO::fse>.
 
@@ -187,7 +187,7 @@ Goro Fuji (藤 吾郎) E<lt>gfuji(at)cpan.orgE<gt>.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2008-2009, Goro Fuji E<lt>gfuji(at)cpan.orgE<gt>. Some rights reserved.
+Copyright (c) 2008-2010, Goro Fuji E<lt>gfuji(at)cpan.orgE<gt>. Some rights reserved.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

@@ -9,9 +9,11 @@ example/rev_bench.pl
 inc/Module/Install.pm
 inc/Module/Install/AuthorTests.pm
 inc/Module/Install/Base.pm
+inc/Module/Install/Can.pm
 inc/Module/Install/Makefile.pm
 inc/Module/Install/MakeMaker.pm
 inc/Module/Install/Metadata.pm
+inc/Module/Install/XSUtil.pm
 lib/PerlIO/creat.pm
 lib/PerlIO/dir.pm
 lib/PerlIO/excl.pm
@@ -21,13 +23,13 @@ lib/PerlIO/tee.pm
 lib/PerlIO/Util.pm
 lib/PerlIO/Util/JA.pod
 Makefile.PL
-MANIFEST
+MANIFEST			This list of files
 MANIFEST.SKIP
 META.yml
 missing.c
+PerlIO-Util.xs
 perlioflock.h
 perlioutil.h
-ppport.h
 pseudo_layers.c
 README
 reverse.c
@@ -46,7 +48,6 @@ t/10_dir.t
 t/20_reverse.t
 t/util/locktest.pl
 tee.c
-Util.xs
 xt/01_podspell.t
 xt/02_pod.t
 xt/03_pod-coverage.t
