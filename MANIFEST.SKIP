@@ -38,7 +38,7 @@
 \.obj$
 
 # avoid temporary source files
-^Util\.c$
+^PerlIO-Util\.c$
 ^Util\.bs$
 
 # avoid auther's test file
@@ -49,3 +49,6 @@
 
 # avoid pppor.h
 ppport\.h$
+
+MYMETA\.yml$
+

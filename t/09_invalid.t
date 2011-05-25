@@ -19,7 +19,7 @@ open my $invalid, '+<', \'';
 
 like $invalid->inspect, qr/Invalid filehandle/, 'setup invalid filehandle';
 
-foreach my $l qw(:flock :creat :excl :tee :dir :reverse :fse){
+foreach my $l (qw(:flock :creat :excl :tee :dir :reverse :fse)){
 	no warnings 'layer';
 
 	ok !binmode($invalid, $l), $l;

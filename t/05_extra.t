@@ -36,7 +36,8 @@ ok !open($in, '<:excl :creat', $file), "open with :excl and :creat -> fail";
 
 unlink $file;
 
-
+{
+local $TODO = 'changed in 5.14.0' if $] >= 5.014;
 ok open($in, '<:creat :excl :utf8', $file), "open with :utf8, :creat and :excl -> success";
 ok -e $file, "created";
 like join(' ', $in->get_layers()), qr/utf8/, "to utf8 mode";
@@ -44,5 +45,6 @@ like join(' ', $in->get_layers()), qr/utf8/, "to utf8 mode";
 ok open($in, '<:creat :flock :utf8', $file), "open with :utf8, :flock and :creat -> success";
 like join(' ', $in->get_layers()), qr/utf8/, "to utf8 mode";
 close $in;
+}
 
 ok unlink($file), "(cleanup)";

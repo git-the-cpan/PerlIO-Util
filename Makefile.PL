@@ -24,14 +24,12 @@ test_requires 'Test::More' => 0.62;
 
 author_tests 'xt';
 
-WriteMakefile(
-    OBJECT              => '$(O_FILES)',
+clean_files q{
+    PerlIO-Util-*
+    cover_db
+    *.gcov *.gcda *.gcno
+    *.stackdump
+    *.out
+};
 
-    clean               => { FILES =>
-    	q{PerlIO-Util-*
-    		cover_db
-    		*.gcov *.gcda *.gcno
-    		*.stackdump
-    		*.out
-    	} },
-);
+WriteAll( check_nmake => 0 );

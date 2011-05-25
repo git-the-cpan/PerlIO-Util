@@ -4,6 +4,9 @@ TODO:
 * improve documents
 * PerlIO::cat - Concatenates a number of files
 
+0.72 2011-05-25 23:13:37
+    - Fix tests for 5.14.0
+
 0.71 Thu Jan 28 14:01:08 2010
     - Fix a buffer overflow issue of 64bit arch (tokuhirom)
     - Fix typos in the pods
